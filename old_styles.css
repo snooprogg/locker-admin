@@ -1,0 +1,410 @@
+@import 'tailwindcss';
+
+/* ============================================================
+   Runtime theme variables — swapped by <html data-theme="…">
+   ============================================================ */
+
+:root {
+  /* Surfaces */
+  --bg: #15181B;
+  --surface: #1C2025;
+  --surface-hover: #222830;
+  --card: #1C2025;
+  --card-border: rgba(255, 255, 255, 0.07);
+  --sidebar-bg: #111416;
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+
+  /* Text */
+  --fg: #ffffff;
+  --fg-sub: rgba(255, 255, 255, 0.45);
+  --fg-muted: rgba(255, 255, 255, 0.25);
+
+  /* Generic border */
+  --border: rgba(255, 255, 255, 0.08);
+
+  /* Inputs */
+  --input-border: rgba(255, 255, 255, 0.24);
+  --input-text: #ffffff;
+  --input-bg: transparent;
+  --label: rgba(255, 255, 255, 0.5);
+  --toggle: rgba(255, 255, 255, 0.4);
+
+  /* Divider */
+  --divider-line: rgba(255, 255, 255, 0.08);
+  --divider-text: rgba(255, 255, 255, 0.25);
+
+  /* SSO button */
+  --sso-bg: rgba(255, 255, 255, 0.04);
+  --sso-border: rgba(255, 255, 255, 0.12);
+  --sso-text: rgba(255, 255, 255, 0.75);
+  --sso-bg-hover: rgba(255, 255, 255, 0.07);
+  --sso-border-hover: rgba(255, 255, 255, 0.22);
+
+  /* Footer */
+  --footer: rgba(255, 255, 255, 0.18);
+
+  /* Theme toggle button */
+  --toggle-btn-bg: rgba(255, 255, 255, 0.06);
+  --toggle-btn-border: rgba(255, 255, 255, 0.12);
+  --toggle-btn-text: rgba(255, 255, 255, 0.55);
+  --toggle-btn-hover: rgba(255, 255, 255, 0.1);
+
+  /* OTP */
+  --otp-bg: rgba(255, 255, 255, 0.04);
+  --otp-border: rgba(255, 255, 255, 0.2);
+  --otp-text: #ffffff;
+  --resend: rgba(255, 255, 255, 0.35);
+  --back: rgba(255, 255, 255, 0.4);
+
+  /* Nav */
+  --nav-active: rgba(22, 192, 121, 0.12);
+  --nav-active-border: #16C079;
+  --nav-text: rgba(255, 255, 255, 0.45);
+  --nav-text-active: #ffffff;
+
+  /* Table */
+  --table-row-hover: rgba(255, 255, 255, 0.03);
+  --table-head: rgba(255, 255, 255, 0.04);
+
+  /* Scrollbar */
+  --scroll-track: rgba(255, 255, 255, 0.04);
+  --scroll-thumb: rgba(255, 255, 255, 0.12);
+
+  /* Decorative */
+  --glow: rgba(22, 192, 121, 0.07);
+  --grid: #ffffff;
+  --grid-opacity: 0.04;
+}
+
+:root[data-theme='light'] {
+  --bg: #F4F6F8;
+  --surface: #ffffff;
+  --surface-hover: #f9fafb;
+  --card: #ffffff;
+  --card-border: rgba(21, 24, 27, 0.09);
+  --sidebar-bg: #ffffff;
+  --sidebar-border: rgba(21, 24, 27, 0.08);
+
+  --fg: #15181B;
+  --fg-sub: rgba(21, 24, 27, 0.5);
+  --fg-muted: rgba(21, 24, 27, 0.3);
+
+  --border: rgba(21, 24, 27, 0.08);
+
+  --input-border: rgba(21, 24, 27, 0.28);
+  --input-text: #15181B;
+  --input-bg: rgba(255, 255, 255, 0.6);
+  --label: rgba(21, 24, 27, 0.45);
+  --toggle: rgba(21, 24, 27, 0.4);
+
+  --divider-line: rgba(21, 24, 27, 0.1);
+  --divider-text: rgba(21, 24, 27, 0.3);
+
+  --sso-bg: rgba(21, 24, 27, 0.04);
+  --sso-border: rgba(21, 24, 27, 0.18);
+  --sso-text: rgba(21, 24, 27, 0.7);
+  --sso-bg-hover: rgba(21, 24, 27, 0.08);
+  --sso-border-hover: rgba(21, 24, 27, 0.28);
+
+  --footer: rgba(21, 24, 27, 0.25);
+
+  --toggle-btn-bg: rgba(21, 24, 27, 0.07);
+  --toggle-btn-border: rgba(21, 24, 27, 0.14);
+  --toggle-btn-text: rgba(21, 24, 27, 0.5);
+  --toggle-btn-hover: rgba(21, 24, 27, 0.11);
+
+  --otp-bg: rgba(255, 255, 255, 0.8);
+  --otp-border: rgba(21, 24, 27, 0.22);
+  --otp-text: #15181B;
+  --resend: rgba(21, 24, 27, 0.4);
+  --back: rgba(21, 24, 27, 0.45);
+
+  --nav-active: rgba(22, 192, 121, 0.1);
+  --nav-active-border: #16C079;
+  --nav-text: rgba(21, 24, 27, 0.5);
+  --nav-text-active: #15181B;
+
+  --table-row-hover: rgba(21, 24, 27, 0.02);
+  --table-head: rgba(21, 24, 27, 0.03);
+
+  --scroll-track: rgba(21, 24, 27, 0.04);
+  --scroll-thumb: rgba(21, 24, 27, 0.12);
+
+  --glow: rgba(22, 192, 121, 0.1);
+  --grid: #15181B;
+  --grid-opacity: 0.05;
+}
+
+/* ============================================================
+   Tailwind theme — maps the runtime vars into utilities
+   Now `bg-bg`, `text-fg`, `border-card-border`, etc. all work
+   and automatically respond to the data-theme swap.
+   ============================================================ */
+
+@theme {
+  /* Surfaces */
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-card: var(--card);
+  --color-card-border: var(--card-border);
+  --color-sidebar: var(--sidebar-bg);
+  --color-sidebar-border: var(--sidebar-border);
+
+  /* Text */
+  --color-fg: var(--fg);
+  --color-fg-sub: var(--fg-sub);
+  --color-fg-muted: var(--fg-muted);
+
+  /* Generic border */
+  --color-border: var(--border);
+
+  /* Inputs */
+  --color-input-border: var(--input-border);
+  --color-input-text: var(--input-text);
+  --color-input-bg: var(--input-bg);
+  --color-label: var(--label);
+  --color-toggle: var(--toggle);
+
+  /* Divider */
+  --color-divider-line: var(--divider-line);
+  --color-divider-text: var(--divider-text);
+
+  /* SSO */
+  --color-sso-bg: var(--sso-bg);
+  --color-sso-border: var(--sso-border);
+  --color-sso-text: var(--sso-text);
+  --color-sso-bg-hover: var(--sso-bg-hover);
+  --color-sso-border-hover: var(--sso-border-hover);
+
+  /* Footer */
+  --color-footer: var(--footer);
+
+  /* Theme toggle button */
+  --color-toggle-btn-bg: var(--toggle-btn-bg);
+  --color-toggle-btn-border: var(--toggle-btn-border);
+  --color-toggle-btn-text: var(--toggle-btn-text);
+  --color-toggle-btn-hover: var(--toggle-btn-hover);
+
+  /* OTP */
+  --color-otp-bg: var(--otp-bg);
+  --color-otp-border: var(--otp-border);
+  --color-otp-text: var(--otp-text);
+  --color-resend: var(--resend);
+  --color-back: var(--back);
+
+  /* Nav */
+  --color-nav-active: var(--nav-active);
+  --color-nav-active-border: var(--nav-active-border);
+  --color-nav-text: var(--nav-text);
+  --color-nav-text-active: var(--nav-text-active);
+
+  /* Table */
+  --color-table-row-hover: var(--table-row-hover);
+  --color-table-head: var(--table-head);
+
+  /* Scrollbar */
+  --color-scroll-track: var(--scroll-track);
+  --color-scroll-thumb: var(--scroll-thumb);
+
+  /* Decorative */
+  --color-glow: var(--glow);
+  --color-grid: var(--grid);
+
+  /* Brand — identical in both themes */
+  --color-primary: #16C079;
+  --color-primary-dark: #10a366;
+  --color-primary-dim: rgba(22, 192, 121, 0.12);
+  --color-error: #f44336;
+
+  /* Fonts */
+  --font-sans: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+
+  /* Type scale extensions */
+  --text-hero: 44px;
+}
+
+/* ============================================================
+   Custom variants — `light:xxx` applies in light mode,
+   `dark:xxx` applies in dark mode (dark is default here).
+   ============================================================ */
+
+@custom-variant light (&:where([data-theme='light'], [data-theme='light'] *));
+@custom-variant dark (&:where(:root:not([data-theme='light']), :root:not([data-theme='light']) *));
+
+/* ============================================================
+   Base
+   ============================================================ */
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+/* Scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+*:hover {
+  scrollbar-color: var(--scroll-thumb) transparent;
+}
+
+/* ============================================================
+   Material outlined text field (themed)
+   ============================================================ */
+
+.md-field {
+  position: relative;
+  width: 100%;
+}
+
+.md-field input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--input-bg);
+  border: 1.5px solid var(--input-border);
+  border-radius: 4px;
+  color: var(--input-text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  padding: 16px 14px 8px 14px;
+  outline: none;
+  transition: border-color 180ms ease, background-color 180ms ease, color 180ms ease;
+  caret-color: #16C079;
+}
+
+.md-field input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 100px var(--surface) inset;
+  -webkit-text-fill-color: var(--input-text);
+}
+
+.md-field label {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--label);
+  pointer-events: none;
+  transition: top 140ms ease, font-size 140ms ease, color 140ms ease, transform 140ms ease;
+  transform-origin: left center;
+  white-space: nowrap;
+}
+
+.md-field input:focus ~ label,
+.md-field input:not(:placeholder-shown) ~ label {
+  top: 10px;
+  transform: translateY(0) scale(0.75);
+  color: #16C079;
+}
+
+.md-field input:not(:focus):not(:placeholder-shown) ~ label {
+  color: var(--label);
+}
+
+.md-field input:focus {
+  border-color: #16C079;
+}
+
+.md-field input:focus + .md-underline,
+.md-field:focus-within .md-focus-ring {
+  opacity: 1;
+}
+
+/* Password toggle */
+.md-field .toggle-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--toggle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  transition: color 150ms ease;
+}
+
+.md-field .toggle-btn:hover {
+  color: var(--fg);
+}
+
+/* ============================================================
+   Ripple button
+   ============================================================ */
+
+.md-btn {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px 24px;
+  background: #16C079;
+  color: #15181B;
+  border: none;
+  border-radius: 4px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 180ms ease, box-shadow 180ms ease;
+  box-shadow: 0 2px 8px rgba(22, 192, 121, 0.25);
+}
+
+.md-btn:hover {
+  background: #10a366;
+  box-shadow: 0 4px 16px rgba(22, 192, 121, 0.35);
+}
+
+.md-btn:active {
+  background: #0d8f59;
+  box-shadow: 0 1px 4px rgba(22, 192, 121, 0.2);
+}
+
+.md-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Ripple effect */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.2);
+  transform: scale(0);
+  animation: ripple-anim 550ms linear;
+  pointer-events: none;
+}
+
+@keyframes ripple-anim {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}

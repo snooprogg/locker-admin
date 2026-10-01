@@ -1,0 +1,60 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Light theme + Tailwind color utilities */
+@theme {
+  --color-ink: #f4f5f6;
+  --color-ink-90: #e8eaec;
+  --color-ink-80: #dde0e3;
+  --color-ink-60: #c2c8ce;
+  --color-ink-40: #8c959e;
+  --color-ink-20: #4a5260;
+
+  --color-green: #0fa968;
+  --color-green-dark: #0d8f59;
+  --color-green-dim: rgba(15, 169, 104, 0.12);
+
+  --color-neutral: #15181b;
+  --color-neutral-90: rgba(21, 24, 27, 0.9);
+  --color-neutral-60: rgba(21, 24, 27, 0.6);
+  --color-neutral-30: rgba(21, 24, 27, 0.3);
+  --color-neutral-10: rgba(21, 24, 27, 0.08);
+  --color-neutral-05: rgba(21, 24, 27, 0.04);
+
+  --color-error: #d32f2f;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  [data-theme="dark"] {
+    color-scheme: dark;
+
+    --color-ink: #15181b;
+    --color-ink-90: #1e2226;
+    --color-ink-80: #272c31;
+    --color-ink-60: #3c4248;
+    --color-ink-40: #636b73;
+    --color-ink-20: #a0a8b0;
+
+    --color-green: #16c079;
+    --color-green-dark: #10a366;
+    --color-green-dim: rgba(22, 192, 121, 0.12);
+
+    --color-neutral: #ffffff;
+    --color-neutral-90: rgba(255, 255, 255, 0.9);
+    --color-neutral-60: rgba(255, 255, 255, 0.6);
+    --color-neutral-30: rgba(255, 255, 255, 0.3);
+    --color-neutral-10: rgba(255, 255, 255, 0.08);
+    --color-neutral-05: rgba(255, 255, 255, 0.04);
+
+    --color-error: #f44336;
+  }
+
+  body {
+    @apply bg-ink text-neutral;
+  }
+}

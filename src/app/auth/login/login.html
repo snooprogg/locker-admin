@@ -1,1 +1,188 @@
-<p>login works!</p>
+<div class="relative flex min-h-full overflow-hidden bg-bg">
+  <!-- Grid background -->
+  <svg class="pointer-events-none absolute inset-0 h-full w-full opacity-[0.04] light:invert" aria-hidden="true">
+    <defs>
+      <pattern id="login-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5" />
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#login-grid)" />
+  </svg>
+
+  <!-- Green glow, top-left -->
+  <div class="pointer-events-none absolute -left-44 -top-36 size-150 rounded-full
+              bg-[radial-gradient(circle,rgb(22_192_121/0.07)_0%,transparent_70%)]"
+       aria-hidden="true"></div>
+
+  <!-- Light / Dark toggle -->
+  <button type="button" (click)="toggleTheme()"
+          class="absolute right-5 top-5 z-10 flex cursor-pointer items-center gap-1.5 rounded-xl border border-fg/12
+                 bg-fg/6 px-3 py-1.5 font-mono text-xs uppercase leading-3.75 tracking-[0.8px] text-fg/55
+                 transition-colors hover:bg-fg/10 hover:text-fg/75"
+          [attr.aria-label]="theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'">
+    @if (theme() === 'dark') {
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="1.4" />
+        <path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.05 3.05l1.06 1.06M11.89 11.89l1.06 1.06M3.05 12.95l1.06-1.06M11.89 4.11l1.06-1.06"
+              stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+      </svg>
+      Light
+    } @else {
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M13.5 9.5A5.5 5.5 0 0 1 6.5 2.5a5.5 5.5 0 1 0 7 7Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+      </svg>
+      Dark
+    }
+  </button>
+
+  <!-- ================= Left brand panel (large screens only) ================= -->
+  <aside class="relative hidden w-[52%] flex-col justify-between border-r border-fg/6 bg-surface px-16 py-14 min-[900px]:flex">
+    <!-- Wordmark -->
+    <div class="flex items-center gap-2.5">
+      <div class="h-7 w-2 rounded-xs bg-primary"></div>
+      <div>
+        <div class="text-[14px] font-bold uppercase leading-5.25 tracking-[1.96px] text-fg">Spoke</div>
+        <div class="font-mono text-2xs uppercase leading-[13.5px] tracking-[1.8px] text-fg/25">Lockers</div>
+      </div>
+    </div>
+
+    <!-- Headline + locker grid -->
+    <div>
+      <div class="mb-5 text-[11px] font-semibold uppercase leading-[16.5px] tracking-[1.76px] text-primary">
+        Inventory Control
+      </div>
+      <h1 class="mb-4 text-hero font-light leading-[1.2] tracking-[-0.38px] text-fg">
+        Smart digital locker<br />
+        <span class="font-bold">management.</span>
+      </h1>
+      <p class="mb-12 max-w-90 text-[14px] leading-[1.7] text-fg/45">
+        Real-time visibility into every locker bay, unit, and transaction across your entire fleet.
+      </p>
+
+      <div class="grid grid-cols-6 gap-1.5">
+        @for (available of lockers; track $index) {
+          @if (available) {
+            <div class="flex h-9 w-7 items-center justify-center rounded-sm border border-primary/45 bg-primary/18">
+              <div class="size-1.5 rounded-full bg-primary"></div>
+            </div>
+          } @else {
+            <div class="h-9 w-7 rounded-sm border border-fg/10 bg-fg/5"></div>
+          }
+        }
+      </div>
+
+      <div class="mt-3 flex items-center gap-4 font-mono text-xs leading-3.75 tracking-[0.5px] text-fg/25">
+        <div class="flex items-center gap-1.5">
+          <div class="size-2 rounded-full bg-primary"></div>
+          Available
+        </div>
+        <div class="flex items-center gap-1.5">
+          <div class="size-2 rounded-full border border-fg/20 bg-fg/15"></div>
+          Occupied
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="font-mono text-xs leading-3.75 tracking-[0.8px] text-fg/25">
+      v3.2.1 · SPOKE-ICP · © 2026
+    </div>
+  </aside>
+
+  <!-- ================= Right: sign-in form ================= -->
+  <main class="relative flex flex-1 items-center justify-center px-6 py-10">
+    <div class="w-full max-w-100">
+      <!-- Compact brand (small screens only; the left panel replaces it on large screens) -->
+      <div class="mb-10 flex items-center gap-2.5 min-[900px]:hidden">
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <rect x="6" y="14" width="20" height="14" rx="2" fill="#16C079" fill-opacity="0.15" stroke="#16C079" stroke-width="1.5" />
+          <path d="M10.5 14V10a5.5 5.5 0 1 1 11 0v4" stroke="#16C079" stroke-width="1.5" stroke-linecap="round" />
+          <circle cx="16" cy="21" r="2" fill="#16C079" />
+          <rect x="15.25" y="21" width="1.5" height="3" rx="0.75" fill="#16C079" />
+        </svg>
+        <div>
+          <div class="text-[15px] font-bold uppercase tracking-[2.1px] text-fg">Spoke Lockers</div>
+          <div class="font-mono text-2xs uppercase tracking-[1.8px] text-fg/40">Inventory Control Panel</div>
+        </div>
+      </div>
+
+      <!-- Heading -->
+      <div class="mb-9">
+        <h2 class="mb-1.5 text-[26px] font-semibold leading-normal tracking-[-0.39px] text-fg">Sign in</h2>
+        <p class="text-sm text-fg/45">Enter your credentials to access the control panel.</p>
+      </div>
+
+      <!-- Form -->
+      <form class="flex flex-col gap-6" (ngSubmit)="onSubmit()">
+        <div class="md-field">
+          <input 
+                id="email"
+                type="email"
+                placeholder=""
+                class="peer w-full rounded border border-neutral-30
+                            bg-transparent px-3.5 pt-5 pb-2 text-base text-neutral
+                            caret-green outline-none transition-colors duration-150
+                            focus:border-green"
+          />
+          <label for="email">Email address</label>
+        </div>
+
+        <div class="md-field">
+          <input id="password" name="password" [type]="showPassword ? 'text' : 'password'" placeholder=" "
+                 autocomplete="current-password" class="pr-11!" [(ngModel)]="password" required />
+          <label for="password">Password</label>
+          <button type="button" class="toggle-btn absolute right-3 top-1/2 -translate-y-1/2"
+                  (click)="showPassword = !showPassword"
+                  [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+            @if (showPassword) {
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M3 10s3-6 7-6 7 6 7 6-3 6-7 6-7-6-7-6Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+                <circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.4" />
+              </svg>
+            } @else {
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M3 3l14 14M8.5 8.73A2.5 2.5 0 0 0 12.27 12.5M6.8 5.59C4.57 7.02 3 9 3 9s3.5 6 7 6c1.34 0 2.59-.5 3.65-1.24M12 4.24C11.37 4.09 10.7 4 10 4c-3.5 0-7 3-7 6 0 .84.2 1.65.55 2.4"
+                      stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+              </svg>
+            }
+          </button>
+        </div>
+
+        <div class="-mt-3 flex justify-end">
+          <button type="button" class="cursor-pointer text-xs tracking-[0.12px] text-primary hover:underline"
+                  (click)="onForgotPassword()">
+            Forgot password?
+          </button>
+        </div>
+
+        <button type="submit" class="md-btn tracking-[1.12px] text-white" [disabled]="loading">
+          {{ loading ? 'Signing in…' : 'Sign In' }}
+        </button>
+      </form>
+
+      <!-- Divider -->
+      <div class="mb-6 mt-7 flex items-center gap-3">
+        <div class="h-px flex-1 bg-fg/8"></div>
+        <span class="font-mono text-xs tracking-[1px] text-fg/25">OR</span>
+        <div class="h-px flex-1 bg-fg/8"></div>
+      </div>
+
+      <!-- SSO -->
+      <button type="button"
+              class="flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-md border border-fg/10 bg-fg/4 px-6 py-[13px] text-sm font-medium tracking-[0.26px] text-fg transition-colors hover:bg-fg/8"
+              (click)="onSso()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <rect x="1" y="1" width="6" height="6" rx="1" fill="#16C079" fill-opacity="0.7" />
+          <rect x="9" y="1" width="6" height="6" rx="1" fill="#16C079" fill-opacity="0.4" />
+          <rect x="1" y="9" width="6" height="6" rx="1" fill="#16C079" fill-opacity="0.4" />
+          <rect x="9" y="9" width="6" height="6" rx="1" fill="#16C079" fill-opacity="0.7" />
+        </svg>
+        Continue with SSO
+      </button>
+
+      <p class="mt-10 text-center font-mono text-xs tracking-[0.6px] text-fg/25">
+        SPOKE LOCKERS · SECURE ACCESS · TLS 1.3
+      </p>
+    </div>
+  </main>
+</div>
