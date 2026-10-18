@@ -1,0 +1,339 @@
+<form class="flex flex-col gap-5 p-6 font-sans text-fg" [formGroup]="form" (ngSubmit)="onSave()" novalidate>
+  <!-- Page header -->
+  <header class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <div class="mb-1 font-mono text-[10px] leading-3.75 tracking-[0.14em] text-green uppercase">
+        Catalog · Products
+      </div>
+      <h1 class="text-[22px] leading-8.25 font-semibold tracking-[-0.01em]">Add Product</h1>
+    </div>
+    <div class="flex gap-2.5">
+      <button type="button" [class]="btnSecondary" (click)="onDiscard()">Discard</button>
+      <button type="submit" [class]="btnPrimary">Save Product</button>
+    </div>
+  </header>
+
+  <!-- 1 · Basic Information -->
+  <section class="rounded-md border border-fg/7 bg-ink-90" formGroupName="basic">
+    <ng-container
+      *ngTemplateOutlet="sectionHeader; context: { n: 1, title: 'Basic Information', sub: 'Core product identity and classification' }"
+    />
+    <div class="grid grid-cols-1 gap-x-6 gap-y-4.5 p-6 md:grid-cols-2">
+      <div>
+        <label for="ap-name" [class]="labelCls">Product Name *</label>
+        <input
+          id="ap-name"
+          type="text"
+          formControlName="name"
+          placeholder="e.g. Spoke Smart Locker Unit L1"
+          [class]="control('basic.name')"
+        />
+        @if (showError('basic.name')) {
+          <p class="mt-1 text-[11px] text-error">Product name is required.</p>
+        }
+      </div>
+
+      <div>
+        <label for="ap-sku" [class]="labelCls">Internal SKU</label>
+        <input id="ap-sku" type="text" formControlName="sku" placeholder="e.g. SL-L1-001" [class]="control('basic.sku')" />
+      </div>
+
+      <div>
+        <label for="ap-desc" [class]="labelCls">Description</label>
+        <textarea
+          id="ap-desc"
+          rows="3"
+          formControlName="description"
+          placeholder="Describe the product — features, dimensions, use case..."
+          [class]="control('basic.description', 'resize-y leading-[20.8px]')"
+        ></textarea>
+      </div>
+
+      <div>
+        <label for="ap-barcode" [class]="labelCls">Barcode / UPC</label>
+        <input
+          id="ap-barcode"
+          type="text"
+          inputmode="numeric"
+          formControlName="barcode"
+          placeholder="e.g. 012345678905"
+          [class]="control('basic.barcode')"
+        />
+      </div>
+
+      <div>
+        <label for="ap-category" [class]="labelCls">Category</label>
+        <div class="relative">
+          <select id="ap-category" formControlName="category" [class]="control('basic.category', selectCls)">
+            <option value="" class="bg-ink-90">Select category…</option>
+            @for (c of categories; track c.value) {
+              <option [value]="c.value" class="bg-ink-90">{{ c.label }}</option>
+            }
+          </select>
+          <svg lucideChevronDown [size]="14" class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-fg/45" />
+        </div>
+      </div>
+
+      <div>
+        <span id="ap-status-label" [class]="labelCls">Status</span>
+        @let status = form.controls.basic.controls.status;
+        <div class="flex gap-2" role="radiogroup" aria-labelledby="ap-status-label">
+          @for (s of statuses; track s.value) {
+            <button
+              type="button"
+              role="radio"
+              [attr.aria-checked]="status.value === s.value"
+              [class]="segment(status.value === s.value)"
+              (click)="status.setValue(s.value); status.markAsDirty()"
+            >
+              {{ s.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="md:col-span-2">
+        <span [class]="labelCls">Product Image</span>
+        @if (imagePreview(); as src) {
+          <div class="flex items-center gap-4 rounded border border-fg/7 bg-fg/2 p-3">
+            <img [src]="src" alt="Product image preview" class="size-20 rounded object-cover" />
+            <div class="min-w-0 flex-1">
+              <div class="truncate text-[13px]">{{ form.controls.basic.controls.image.value?.name }}</div>
+              <div class="font-mono text-[10px] tracking-[0.04em] text-fg/25">
+                {{ ((form.controls.basic.controls.image.value?.size ?? 0) / 1024 / 1024).toFixed(2) }} MB
+              </div>
+            </div>
+            <button
+              type="button"
+              class="rounded p-2 text-fg/45 transition-colors hover:bg-fg/6 hover:text-fg"
+              aria-label="Remove image"
+              (click)="clearImage()"
+            >
+              <svg lucideX [size]="16" />
+            </button>
+          </div>
+        } @else {
+          <label
+            class="flex cursor-pointer flex-col items-center justify-center gap-2 rounded border-[1.5px] border-dashed px-4 py-7 text-center transition-colors duration-150 focus-within:border-green"
+            [class]="dragging() ? 'border-green bg-green/5' : 'border-fg/7 bg-fg/2 hover:border-fg/15'"
+            (dragover)="onDragOver($event)"
+            (dragleave)="dragging.set(false)"
+            (drop)="onDrop($event)"
+          >
+            <input type="file" accept="image/png,image/jpeg,image/webp" class="sr-only" (change)="onFileInput($event)" />
+            <svg lucideImage [size]="28" [strokeWidth]="1.25" class="text-fg/25" />
+            <div class="text-xs leading-4.5 text-fg/45">
+              Drop image here or <span class="text-green">browse</span>
+            </div>
+            <div class="font-mono text-[10px] leading-3.75 tracking-[0.04em] text-fg/25">PNG · JPG · WEBP · max 4 MB</div>
+          </label>
+        }
+        @if (imageError(); as err) {
+          <p class="mt-1 text-[11px] text-error">{{ err }}</p>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · Sales Information -->
+  <section class="rounded-md border border-fg/7 bg-ink-90" formGroupName="sales">
+    <ng-container
+      *ngTemplateOutlet="sectionHeader; context: { n: 2, title: 'Sales Information', sub: 'Pricing, tax, and how this product is sold to customers' }"
+    />
+    <div class="grid grid-cols-1 gap-x-6 gap-y-4.5 p-6 md:grid-cols-2">
+      <div>
+        <label for="ap-sell-unit" [class]="labelCls">Selling Unit</label>
+        <div class="relative">
+          <select id="ap-sell-unit" formControlName="sellingUnit" [class]="control('sales.sellingUnit', selectCls)">
+            @for (u of sellingUnits; track u.value) {
+              <option [value]="u.value" class="bg-ink-90">{{ u.label }}</option>
+            }
+          </select>
+          <svg lucideChevronDown [size]="14" class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-fg/45" />
+        </div>
+      </div>
+
+      <div>
+        <label for="ap-price" [class]="labelCls">Selling Price *</label>
+        <div class="relative">
+          <span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 font-mono text-xs text-fg/25">$</span>
+          <input
+            id="ap-price"
+            type="number"
+            min="0"
+            step="0.01"
+            inputmode="decimal"
+            formControlName="sellingPrice"
+            placeholder="0.00"
+            [class]="control('sales.sellingPrice', 'pl-7 ' + numberCls)"
+          />
+        </div>
+        @if (showError('sales.sellingPrice')) {
+          <p class="mt-1 text-[11px] text-error">Enter a selling price of 0 or more.</p>
+        }
+      </div>
+
+      <div>
+        <span id="ap-taxable-label" [class]="labelCls">Taxable</span>
+        @let taxable = form.controls.sales.controls.taxable;
+        <div class="flex gap-2" role="radiogroup" aria-labelledby="ap-taxable-label">
+          @for (t of taxableOptions; track t.label) {
+            <button
+              type="button"
+              role="radio"
+              [attr.aria-checked]="taxable.value === t.value"
+              [class]="segment(taxable.value === t.value)"
+              (click)="taxable.setValue(t.value); taxable.markAsDirty()"
+            >
+              {{ t.label }}
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · Vendor & Ordering Information -->
+  <section class="rounded-md border border-fg/7 bg-ink-90" formGroupName="vendor">
+    <ng-container
+      *ngTemplateOutlet="sectionHeader; context: { n: 3, title: 'Vendor & Ordering Information', sub: 'Supplier details, costs, and replenishment settings' }"
+    />
+    <div class="grid grid-cols-1 gap-x-6 gap-y-4.5 p-6 md:grid-cols-2">
+      <div>
+        <label for="ap-vendor" [class]="labelCls">Primary Vendor</label>
+        <div class="relative">
+          <select id="ap-vendor" formControlName="vendorId" [class]="control('vendor.vendorId', selectCls)">
+            <option value="" class="bg-ink-90">Select vendor…</option>
+            @for (v of vendors; track v.value) {
+              <option [value]="v.value" class="bg-ink-90">{{ v.label }}</option>
+            }
+          </select>
+          <svg lucideChevronDown [size]="14" class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-fg/45" />
+        </div>
+      </div>
+
+      <div>
+        <label for="ap-vendor-sku" [class]="labelCls">Vendor SKU</label>
+        <input
+          id="ap-vendor-sku"
+          type="text"
+          formControlName="vendorSku"
+          placeholder="e.g. VND-SL-4492"
+          [class]="control('vendor.vendorSku')"
+        />
+      </div>
+
+      <div>
+        <label for="ap-purchase-unit" [class]="labelCls">Purchase Unit</label>
+        <div class="relative">
+          <select id="ap-purchase-unit" formControlName="purchaseUnit" [class]="control('vendor.purchaseUnit', selectCls)">
+            @for (u of purchaseUnits; track u.value) {
+              <option [value]="u.value" class="bg-ink-90">{{ u.label }}</option>
+            }
+          </select>
+          <svg lucideChevronDown [size]="14" class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-fg/45" />
+        </div>
+      </div>
+
+      <div>
+        <label for="ap-qty" [class]="labelCls">Quantity per Purchase Unit</label>
+        <input
+          id="ap-qty"
+          type="number"
+          min="1"
+          step="1"
+          inputmode="numeric"
+          formControlName="qtyPerPurchaseUnit"
+          placeholder="e.g. 12"
+          [class]="control('vendor.qtyPerPurchaseUnit', numberCls)"
+        />
+        @if (showError('vendor.qtyPerPurchaseUnit')) {
+          <p class="mt-1 text-[11px] text-error">Must be at least 1.</p>
+        }
+      </div>
+
+      <div>
+        <label for="ap-cost" [class]="labelCls">Current Purchase Cost</label>
+        <div class="relative">
+          <span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 font-mono text-xs text-fg/25">$</span>
+          <input
+            id="ap-cost"
+            type="number"
+            min="0"
+            step="0.01"
+            inputmode="decimal"
+            formControlName="purchaseCost"
+            placeholder="0.00"
+            [class]="control('vendor.purchaseCost', 'pl-7 ' + numberCls)"
+          />
+        </div>
+        @if (showError('vendor.purchaseCost')) {
+          <p class="mt-1 text-[11px] text-error">Cost can't be negative.</p>
+        }
+      </div>
+
+      <div>
+        <label for="ap-moq" [class]="labelCls">Minimum Order Quantity</label>
+        <input
+          id="ap-moq"
+          type="number"
+          min="1"
+          step="1"
+          inputmode="numeric"
+          formControlName="minOrderQty"
+          placeholder="e.g. 5"
+          [class]="control('vendor.minOrderQty', numberCls)"
+        />
+        @if (showError('vendor.minOrderQty')) {
+          <p class="mt-1 text-[11px] text-error">Must be at least 1.</p>
+        }
+      </div>
+
+      <div>
+        <label for="ap-reorder" [class]="labelCls">Reorder URL</label>
+        <input
+          id="ap-reorder"
+          type="url"
+          formControlName="reorderUrl"
+          placeholder="https://vendor.com/reorder/..."
+          [class]="control('vendor.reorderUrl')"
+        />
+        @if (showError('vendor.reorderUrl')) {
+          <p class="mt-1 text-[11px] text-error">Enter a full URL starting with http:// or https://</p>
+        }
+      </div>
+
+      <div>
+        <label for="ap-notes" [class]="labelCls">Ordering Notes</label>
+        <textarea
+          id="ap-notes"
+          rows="3"
+          formControlName="orderingNotes"
+          placeholder="Lead time, special instructions, contact info..."
+          [class]="control('vendor.orderingNotes', 'resize-y leading-[20.8px]')"
+        ></textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer actions -->
+  <div class="flex justify-end gap-2.5">
+    <button type="button" [class]="btnSecondary" (click)="onDiscard()">Discard</button>
+    <button type="submit" [class]="btnPrimary">Save Product</button>
+  </div>
+</form>
+
+<!-- Numbered section header -->
+<ng-template #sectionHeader let-n="n" let-title="title" let-sub="sub">
+  <div class="flex items-center gap-3 border-b border-fg/8 px-6 py-4">
+    <div
+      class="flex size-6 shrink-0 items-center justify-center rounded-full border border-green/30 bg-green/12 font-mono text-[10px] leading-3.75 font-semibold text-green"
+    >
+      {{ n }}
+    </div>
+    <div>
+      <div class="mb-0.5 text-[13px] leading-4.875 font-semibold">{{ title }}</div>
+      <div class="mb-5 text-xs leading-4.5 text-fg/25">{{ sub }}</div>
+    </div>
+  </div>
+</ng-template>

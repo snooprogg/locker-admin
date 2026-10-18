@@ -1,0 +1,227 @@
+<aside
+  class="flex flex-col overflow-hidden border-r border-fg/6 bg-ink font-sans text-fg transition-[width] duration-200 ease-out"
+  [class]="collapsed() ? 'w-15' : 'w-55'"
+>
+  <!-- Brand -->
+  <div class="flex shrink-0 items-center gap-2.5 border-b border-fg/6 pt-6 pb-5" [class]="collapsed() ? 'justify-center px-4' : 'px-5'">
+    <div class="h-6 w-2 shrink-0 rounded-xs bg-green"></div>
+    @if (!collapsed()) {
+      <div class="flex flex-col whitespace-nowrap">
+        <span class="text-[13px] leading-5 font-bold tracking-[0.12em] uppercase">{{ brand() }}</span>
+        <span class="font-mono text-[8px] leading-3 tracking-[0.2em] text-fg/25 uppercase">{{ subtitle() }}</span>
+      </div>
+    }
+  </div>
+
+  <!-- Nav -->
+  <nav
+    class="flex min-h-0 flex-1 flex-col gap-0.5 overflow-x-hidden overflow-y-auto px-2 py-3 [scrollbar-color:color-mix(in_oklab,var(--color-fg)_15%,transparent)_transparent] [scrollbar-width:thin]"
+  >
+    @for (entry of items(); track $index) {
+      @if (isDivider(entry)) {
+        <div class="mx-1 my-1.5 h-px shrink-0 bg-fg/8"></div>
+      } @else {
+        @let item = asItem(entry);
+        @let k1 = key(item);
+
+        @if (item.children) {
+          <!-- Level 1: section group (CATALOG, LOCKERS) -->
+          @let open1 = isOpen(k1);
+          <button
+            type="button"
+            class="flex w-full shrink-0 items-center rounded border-l-2 border-transparent py-2 text-[11px] font-semibold tracking-[0.1em] uppercase transition-colors duration-150"
+            [class]="
+              (collapsed() ? 'justify-center px-0' : 'gap-3 px-3') + ' ' +
+              (isActive(item) ? 'text-green' : 'text-fg/45 hover:text-fg/75')
+            "
+            [attr.aria-expanded]="open1"
+            [attr.title]="collapsed() ? item.label : null"
+            [attr.aria-label]="collapsed() ? item.label : null"
+            (click)="toggle(k1)"
+          >
+            @if (item.icon) {
+              <svg [lucideIcon]="item.icon" [size]="18" [strokeWidth]="1.5" class="shrink-0" />
+            }
+            @if (!collapsed()) {
+              <span class="truncate">{{ item.label }}</span>
+              <svg
+                lucideChevronDown
+                [size]="12"
+                [strokeWidth]="2"
+                class="ml-auto shrink-0 transition-transform duration-200"
+                [class.rotate-180]="open1"
+              />
+            }
+          </button>
+
+          <div
+            class="grid shrink-0 transition-[grid-template-rows] duration-200 ease-out"
+            [class]="open1 ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
+            [attr.inert]="open1 ? null : ''"
+          >
+            <div class="flex min-h-0 flex-col gap-0.5 overflow-hidden">
+              @for (child of item.children; track child.label) {
+                @let k2 = key(child, k1);
+
+                @if (child.children) {
+                  <!-- Level 2 with children (Products) -->
+                  @let open2 = isOpen(k2);
+                  <button
+                    type="button"
+                    class="flex w-full items-center rounded border-l-2 border-transparent py-[9px] text-[13px] tracking-[0.01em] transition-colors duration-150 first:mt-0.5"
+                    [class]="
+                      (collapsed() ? 'justify-center px-0' : 'gap-3 pr-3 pl-9') + ' ' +
+                      (open2 || isActive(child) ? 'text-fg' : 'text-fg/45 hover:bg-fg/4 hover:text-fg/75')
+                    "
+                    [attr.aria-expanded]="open2"
+                    [attr.title]="collapsed() ? child.label : null"
+                    [attr.aria-label]="collapsed() ? child.label : null"
+                    (click)="toggle(k2)"
+                  >
+                    @if (child.icon) {
+                      <svg [lucideIcon]="child.icon" [size]="15" [strokeWidth]="1.5" class="shrink-0" />
+                    }
+                    @if (!collapsed()) {
+                      <span class="truncate">{{ child.label }}</span>
+                      <svg
+                        lucideChevronDown
+                        [size]="12"
+                        [strokeWidth]="2"
+                        class="ml-auto shrink-0 transition-transform duration-200"
+                        [class.rotate-180]="open2"
+                      />
+                    }
+                  </button>
+
+                  <div
+                    class="grid transition-[grid-template-rows] duration-200 ease-out"
+                    [class]="open2 ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
+                    [attr.inert]="open2 ? null : ''"
+                  >
+                    <div class="flex min-h-0 flex-col gap-0.5 overflow-hidden">
+                      @for (leaf of child.children; track leaf.label) {
+                        <!-- Level 3 leaf (Add, Create) -->
+                        @let leafActive = isActive(leaf);
+                        <a
+                          [routerLink]="leaf.route"
+                          class="flex w-full items-center rounded border-l-2 py-2 text-xs transition-colors duration-150 first:mt-0.5"
+                          [class]="
+                            (collapsed() ? 'justify-center px-0' : 'gap-2.5 pr-3 pl-[52px]') + ' ' +
+                            (leafActive
+                              ? 'border-green bg-green/12 font-medium text-fg'
+                              : 'border-transparent text-fg/45 hover:bg-fg/4 hover:text-fg/75')
+                          "
+                          [attr.aria-current]="leafActive ? 'page' : null"
+                          [attr.title]="collapsed() ? leaf.label : null"
+                          [attr.aria-label]="collapsed() ? leaf.label : null"
+                        >
+                          <span class="flex size-2.5 shrink-0 items-center justify-center">
+                            <span class="size-[3px] rounded-full bg-current"></span>
+                          </span>
+                          @if (!collapsed()) {
+                            <span class="truncate">{{ leaf.label }}</span>
+                          }
+                        </a>
+                      }
+                    </div>
+                  </div>
+                } @else {
+                  <!-- Level 2 link (Vendors, Add New, Manage) -->
+                  @let childActive = isActive(child);
+                  <a
+                    [routerLink]="child.route"
+                    class="flex w-full items-center rounded border-l-2 py-[9px] text-[13px] tracking-[0.01em] transition-colors duration-150 first:mt-0.5"
+                    [class]="
+                      (collapsed() ? 'justify-center px-0' : 'gap-3 pr-3 pl-9') + ' ' +
+                      (childActive
+                        ? 'border-green bg-green/12 font-medium text-fg'
+                        : 'border-transparent text-fg/45 hover:bg-fg/4 hover:text-fg/75')
+                    "
+                    [attr.aria-current]="childActive ? 'page' : null"
+                    [attr.title]="collapsed() ? child.label : null"
+                    [attr.aria-label]="collapsed() ? child.label : null"
+                  >
+                    @if (child.icon) {
+                      <svg [lucideIcon]="child.icon" [size]="15" [strokeWidth]="1.5" class="shrink-0" />
+                    }
+                    @if (!collapsed()) {
+                      <span class="truncate">{{ child.label }}</span>
+                    }
+                  </a>
+                }
+              }
+            </div>
+          </div>
+        } @else {
+          <!-- Level 1 link (Overview, Inventory, ...) -->
+          @let active = isActive(item);
+          <a
+            [routerLink]="item.route"
+            class="relative flex w-full shrink-0 items-center rounded border-l-2 py-2.5 text-[13px] tracking-[0.01em] transition-colors duration-150"
+            [class]="
+              (collapsed() ? 'justify-center px-0' : 'gap-3 px-3') + ' ' +
+              (active
+                ? 'border-green bg-green/12 font-medium text-fg'
+                : 'border-transparent text-fg/45 hover:bg-fg/4 hover:text-fg/75')
+            "
+            [attr.aria-current]="active ? 'page' : null"
+            [attr.title]="collapsed() ? item.label : null"
+            [attr.aria-label]="collapsed() ? item.label : null"
+          >
+            @if (item.icon) {
+              <svg [lucideIcon]="item.icon" [size]="18" [strokeWidth]="1.5" class="shrink-0" />
+            }
+            @if (!collapsed()) {
+              <span class="truncate">{{ item.label }}</span>
+              @if (item.badge) {
+                <span
+                  class="ml-auto rounded-full bg-error/15 px-1.5 py-px font-mono text-[9px] leading-[14px] text-error"
+                >
+                  {{ item.badge }}
+                </span>
+              }
+            } @else if (item.badge) {
+              <span class="absolute top-2 right-2.5 size-1.5 rounded-full bg-error"></span>
+            }
+          </a>
+        }
+      }
+    }
+  </nav>
+
+  <!-- Footer -->
+  <div class="flex shrink-0 flex-col gap-0.5 border-t border-fg/6 px-2 py-3">
+    <button
+      type="button"
+      class="flex w-full items-center rounded py-2 text-xs text-fg/25 transition-colors duration-150 hover:text-fg/45"
+      [class]="collapsed() ? 'justify-center px-0' : 'gap-3 px-3'"
+      [attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+      [attr.title]="collapsed() ? 'Expand' : null"
+      (click)="collapsed.set(!collapsed())"
+    >
+      <svg
+        lucideChevronLeft
+        [size]="16"
+        [strokeWidth]="1.5"
+        class="shrink-0 transition-transform duration-200"
+        [class.rotate-180]="collapsed()"
+      />
+      @if (!collapsed()) {
+        <span class="whitespace-nowrap">Collapse</span>
+      }
+    </button>
+    <button
+      type="button"
+      class="flex w-full items-center rounded py-2 text-xs text-fg/25 transition-colors duration-150 hover:text-fg/45"
+      [class]="collapsed() ? 'justify-center px-0' : 'gap-3 px-3'"
+      [attr.aria-label]="collapsed() ? 'Sign out' : null"
+      [attr.title]="collapsed() ? 'Sign out' : null"
+      (click)="signOut.emit()"
+    >
+      <svg lucideLogOut [size]="16" [strokeWidth]="1.5" class="shrink-0" />
+      @if (!collapsed()) {
+        <span class="whitespace-nowrap">Sign out</span>
+      }
+    </button>
+  </div>
+</aside>
