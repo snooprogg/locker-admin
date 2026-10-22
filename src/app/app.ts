@@ -6,6 +6,7 @@ import { RouterOutlet } from '@angular/router';
   selector: 'app-root',
   styleUrl: './app.scss',
   templateUrl: './app.html',
+  host: { class: 'block h-full' },
 })
 export class App {
   protected readonly title = signal('backend');

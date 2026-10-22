@@ -20,6 +20,7 @@
     "@angular/router": "^22.2.1",
     "@lucide/angular": "^1.49.0",
     "@supabase/supabase-js": "^2.116.0",
+    "jwt-decode": "^4.0.0",
     "ngx-cookie-service": "^22.0.0",
     "perfect-scrollbar": "^1.5.6",
     "rxjs": "~7.8.0",

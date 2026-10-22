@@ -1,25 +1,19 @@
-<aside
-  class="flex flex-col overflow-hidden border-r border-fg/6 bg-ink font-sans text-fg transition-[width] duration-200 ease-out"
-  [class]="collapsed() ? 'w-15' : 'w-55'"
->
-  <!-- Brand -->
-  <div class="flex shrink-0 items-center gap-2.5 border-b border-fg/6 pt-6 pb-5" [class]="collapsed() ? 'justify-center px-4' : 'px-5'">
-    <div class="h-6 w-2 shrink-0 rounded-xs bg-green"></div>
+<aside class="h-full shrink-0 bg-white dark:bg-zinc-950 border-r border-r-zinc-200 dark:border-r-zinc-800 flex flex-col transition-all duration-200 overflow-hidden" [class]="collapsed() ? 'w-15' : 'w-55'">
+  <div class="shrink-0 pt-6 pr-5 pb-5 flex items-center gap-2.5 border-b border-b-zinc-200 dark:border-b-zinc-800 transition-all duration-200"
+    [class]="collapsed() ? 'pr-4 pl-4' : 'pr-5 pl-5'">
+    <div class="w-2 h-6 bg-emerald-500 rounded-xs shrink-0"></div>
     @if (!collapsed()) {
-      <div class="flex flex-col whitespace-nowrap">
-        <span class="text-[13px] leading-5 font-bold tracking-[0.12em] uppercase">{{ brand() }}</span>
-        <span class="font-mono text-[8px] leading-3 tracking-[0.2em] text-fg/25 uppercase">{{ subtitle() }}</span>
+      <div>
+        <div class="font-sans text-[0.8125rem] font-bold tracking-widest uppercase text-zinc-950 dark:text-zinc-100 whitespace-nowrap transition-all duration-200">{{ brand() }}</div>
+        <div class="font-mono text-[0.5rem] tracking-widest uppercase text-zinc-500 transition-all duration-200">{{ subtitle() }}</div>
       </div>
     }
   </div>
-
   <!-- Nav -->
-  <nav
-    class="flex min-h-0 flex-1 flex-col gap-0.5 overflow-x-hidden overflow-y-auto px-2 py-3 [scrollbar-color:color-mix(in_oklab,var(--color-fg)_15%,transparent)_transparent] [scrollbar-width:thin]"
-  >
+  <nav class="flex-1 min-h-0 pt-3 pr-2 pb-3 pl-2 flex flex-col gap-0.5 overflow-y-auto overflow-x-hidden">
     @for (entry of items(); track $index) {
       @if (isDivider(entry)) {
-        <div class="mx-1 my-1.5 h-px shrink-0 bg-fg/8"></div>
+        <div class="h-px shrink-0 bg-zinc-200 dark:bg-zinc-800 mt-1.5 mr-1 mb-1.5 ml-1 transition-all duration-200"></div>
       } @else {
         @let item = asItem(entry);
         @let k1 = key(item);
@@ -29,10 +23,12 @@
           @let open1 = isOpen(k1);
           <button
             type="button"
-            class="flex w-full shrink-0 items-center rounded border-l-2 border-transparent py-2 text-[11px] font-semibold tracking-[0.1em] uppercase transition-colors duration-150"
+            class="flex shrink-0 items-center pt-2 pb-2 justify-start w-full bg-transparent border-0 border-l-2 border-l-transparent rounded cursor-pointer font-sans text-[0.6875rem] font-semibold tracking-widest uppercase whitespace-nowrap transition-all duration-200"
             [class]="
-              (collapsed() ? 'justify-center px-0' : 'gap-3 px-3') + ' ' +
-              (isActive(item) ? 'text-green' : 'text-fg/45 hover:text-fg/75')
+              (collapsed() ? 'justify-center px-0' : 'gap-3 pr-3 pl-3') + ' ' +
+              (isActive(item)
+                ? 'text-emerald-500'
+                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100')
             "
             [attr.aria-expanded]="open1"
             [attr.title]="collapsed() ? item.label : null"
@@ -40,15 +36,15 @@
             (click)="toggle(k1)"
           >
             @if (item.icon) {
-              <svg [lucideIcon]="item.icon" [size]="18" [strokeWidth]="1.5" class="shrink-0" />
+              <span class="shrink-0"><svg [lucideIcon]="item.icon" [size]="18" [strokeWidth]="1.4" /></span>
             }
             @if (!collapsed()) {
-              <span class="truncate">{{ item.label }}</span>
+              <span>{{ item.label }}</span>
               <svg
                 lucideChevronDown
                 [size]="12"
-                [strokeWidth]="2"
-                class="ml-auto shrink-0 transition-transform duration-200"
+                [strokeWidth]="1.4"
+                class="ml-auto shrink-0 transition-all duration-200"
                 [class.rotate-180]="open1"
               />
             }
@@ -68,10 +64,12 @@
                   @let open2 = isOpen(k2);
                   <button
                     type="button"
-                    class="flex w-full items-center rounded border-l-2 border-transparent py-[9px] text-[13px] tracking-[0.01em] transition-colors duration-150 first:mt-0.5"
+                    class="flex items-center pt-2.25 pb-2.25 justify-start w-full bg-transparent border-0 border-l-2 border-l-transparent rounded cursor-pointer font-sans text-[0.8125rem] font-normal tracking-wide whitespace-nowrap transition-all duration-200"
                     [class]="
                       (collapsed() ? 'justify-center px-0' : 'gap-3 pr-3 pl-9') + ' ' +
-                      (open2 || isActive(child) ? 'text-fg' : 'text-fg/45 hover:bg-fg/4 hover:text-fg/75')
+                      (open2 || isActive(child)
+                        ? 'text-zinc-950 dark:text-white'
+                        : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100')
                     "
                     [attr.aria-expanded]="open2"
                     [attr.title]="collapsed() ? child.label : null"
@@ -79,15 +77,15 @@
                     (click)="toggle(k2)"
                   >
                     @if (child.icon) {
-                      <svg [lucideIcon]="child.icon" [size]="15" [strokeWidth]="1.5" class="shrink-0" />
+                      <span class="shrink-0"><svg [lucideIcon]="child.icon" [size]="15" [strokeWidth]="1.3" /></span>
                     }
                     @if (!collapsed()) {
-                      <span class="truncate">{{ child.label }}</span>
+                      <span>{{ child.label }}</span>
                       <svg
                         lucideChevronDown
                         [size]="12"
-                        [strokeWidth]="2"
-                        class="ml-auto shrink-0 transition-transform duration-200"
+                        [strokeWidth]="1.4"
+                        class="ml-auto shrink-0 transition-all duration-200"
                         [class.rotate-180]="open2"
                       />
                     }
@@ -104,22 +102,22 @@
                         @let leafActive = isActive(leaf);
                         <a
                           [routerLink]="leaf.route"
-                          class="flex w-full items-center rounded border-l-2 py-2 text-xs transition-colors duration-150 first:mt-0.5"
+                          class="flex items-center pt-2 pb-2 justify-start w-full border-0 border-l-2 cursor-pointer font-sans text-xs tracking-wide whitespace-nowrap transition-all duration-200"
                           [class]="
-                            (collapsed() ? 'justify-center px-0' : 'gap-2.5 pr-3 pl-[52px]') + ' ' +
+                            (collapsed() ? 'justify-center px-0' : 'gap-2.5 pr-3 pl-13') + ' ' +
                             (leafActive
-                              ? 'border-green bg-green/12 font-medium text-fg'
-                              : 'border-transparent text-fg/45 hover:bg-fg/4 hover:text-fg/75')
+                              ? 'bg-emerald-500/10 border-l-emerald-500 rounded-r text-zinc-950 dark:text-white font-medium'
+                              : 'bg-transparent border-l-transparent rounded text-zinc-500 dark:text-zinc-400 font-normal hover:text-zinc-950 dark:hover:text-zinc-100')
                           "
                           [attr.aria-current]="leafActive ? 'page' : null"
                           [attr.title]="collapsed() ? leaf.label : null"
                           [attr.aria-label]="collapsed() ? leaf.label : null"
                         >
-                          <span class="flex size-2.5 shrink-0 items-center justify-center">
-                            <span class="size-[3px] rounded-full bg-current"></span>
-                          </span>
+                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" class="shrink-0 opacity-40" aria-hidden="true">
+                            <circle cx="5" cy="5" r="1.5" fill="currentColor"></circle>
+                          </svg>
                           @if (!collapsed()) {
-                            <span class="truncate">{{ leaf.label }}</span>
+                            <span>{{ leaf.label }}</span>
                           }
                         </a>
                       }
@@ -130,22 +128,22 @@
                   @let childActive = isActive(child);
                   <a
                     [routerLink]="child.route"
-                    class="flex w-full items-center rounded border-l-2 py-[9px] text-[13px] tracking-[0.01em] transition-colors duration-150 first:mt-0.5"
+                    class="flex items-center pt-2.25 pb-2.25 justify-start w-full border-0 border-l-2 cursor-pointer font-sans text-[0.8125rem] tracking-wide whitespace-nowrap transition-all duration-200"
                     [class]="
                       (collapsed() ? 'justify-center px-0' : 'gap-3 pr-3 pl-9') + ' ' +
                       (childActive
-                        ? 'border-green bg-green/12 font-medium text-fg'
-                        : 'border-transparent text-fg/45 hover:bg-fg/4 hover:text-fg/75')
+                        ? 'bg-emerald-500/10 border-l-emerald-500 rounded-r text-zinc-950 dark:text-white font-medium'
+                        : 'bg-transparent border-l-transparent rounded text-zinc-500 dark:text-zinc-400 font-normal hover:text-zinc-950 dark:hover:text-zinc-100')
                     "
                     [attr.aria-current]="childActive ? 'page' : null"
                     [attr.title]="collapsed() ? child.label : null"
                     [attr.aria-label]="collapsed() ? child.label : null"
                   >
                     @if (child.icon) {
-                      <svg [lucideIcon]="child.icon" [size]="15" [strokeWidth]="1.5" class="shrink-0" />
+                      <span class="shrink-0"><svg [lucideIcon]="child.icon" [size]="15" [strokeWidth]="1.3" /></span>
                     }
                     @if (!collapsed()) {
-                      <span class="truncate">{{ child.label }}</span>
+                      <span>{{ child.label }}</span>
                     }
                   </a>
                 }
@@ -157,31 +155,27 @@
           @let active = isActive(item);
           <a
             [routerLink]="item.route"
-            class="relative flex w-full shrink-0 items-center rounded border-l-2 py-2.5 text-[13px] tracking-[0.01em] transition-colors duration-150"
+            class="relative flex shrink-0 items-center pt-2.5 pb-2.5 justify-start w-full border-0 border-l-2 cursor-pointer font-sans text-[0.8125rem] tracking-wide whitespace-nowrap transition-all duration-200"
             [class]="
-              (collapsed() ? 'justify-center px-0' : 'gap-3 px-3') + ' ' +
+              (collapsed() ? 'justify-center px-0' : 'gap-3 pr-3 pl-3') + ' ' +
               (active
-                ? 'border-green bg-green/12 font-medium text-fg'
-                : 'border-transparent text-fg/45 hover:bg-fg/4 hover:text-fg/75')
+                ? 'bg-emerald-500/10 border-l-emerald-500 rounded-r text-zinc-950 dark:text-white font-medium'
+                : 'bg-transparent border-l-transparent rounded text-zinc-500 dark:text-zinc-400 font-normal hover:text-zinc-950 dark:hover:text-zinc-100')
             "
             [attr.aria-current]="active ? 'page' : null"
             [attr.title]="collapsed() ? item.label : null"
             [attr.aria-label]="collapsed() ? item.label : null"
           >
             @if (item.icon) {
-              <svg [lucideIcon]="item.icon" [size]="18" [strokeWidth]="1.5" class="shrink-0" />
+              <span class="shrink-0"><svg [lucideIcon]="item.icon" [size]="18" [strokeWidth]="1.4" /></span>
             }
             @if (!collapsed()) {
-              <span class="truncate">{{ item.label }}</span>
+              <span>{{ item.label }}</span>
               @if (item.badge) {
-                <span
-                  class="ml-auto rounded-full bg-error/15 px-1.5 py-px font-mono text-[9px] leading-[14px] text-error"
-                >
-                  {{ item.badge }}
-                </span>
+                <span class="ml-auto bg-red-500/15 text-red-500 font-mono text-[0.5625rem] rounded-full pt-px pr-1.5 pb-px pl-1.5">{{ item.badge }}</span>
               }
             } @else if (item.badge) {
-              <span class="absolute top-2 right-2.5 size-1.5 rounded-full bg-error"></span>
+              <span class="absolute top-2 right-2.5 size-1.5 rounded-full bg-red-500"></span>
             }
           </a>
         }
@@ -189,12 +183,15 @@
     }
   </nav>
 
-  <!-- Footer -->
-  <div class="flex shrink-0 flex-col gap-0.5 border-t border-fg/6 px-2 py-3">
+  <!-- Footer
+  flex items-center gap-3 pt-2 pr-3 pb-2 pl-3 justify-start w-full bg-transparent border-0 rounded text-zinc-500 cursor-pointer font-sans text-xs transition-all duration-200
+  flex items-center gap-3 pt-2 pr-0 pb-2 pl-0 justify-center w-full bg-transparent border-0 rounded text-zinc-500 cursor-pointer font-sans text-xs transition-all duration-200 
+  -->
+  <div class="shrink-0 pt-2 pb-3 border-t border-t-zinc-200 dark:border-t-zinc-800 flex flex-col gap-0.5">
     <button
       type="button"
-      class="flex w-full items-center rounded py-2 text-xs text-fg/25 transition-colors duration-150 hover:text-fg/45"
-      [class]="collapsed() ? 'justify-center px-0' : 'gap-3 px-3'"
+      class="flex items-center pt-2 pb-2 w-full bg-transparent border-0 rounded text-zinc-500 cursor-pointer font-sans text-xs transition-all duration-200 hover:text-zinc-950 dark:hover:text-zinc-100"
+      [class]="collapsed() ? 'px-0 justify-center' : 'px-3 justify-start'"
       [attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
       [attr.title]="collapsed() ? 'Expand' : null"
       (click)="collapsed.set(!collapsed())"
@@ -202,25 +199,25 @@
       <svg
         lucideChevronLeft
         [size]="16"
-        [strokeWidth]="1.5"
-        class="shrink-0 transition-transform duration-200"
+        [strokeWidth]="1.4"
+        class="shrink-0 transition-all duration-200"
         [class.rotate-180]="collapsed()"
       />
       @if (!collapsed()) {
-        <span class="whitespace-nowrap">Collapse</span>
+        <span>Collapse</span>
       }
     </button>
     <button
       type="button"
-      class="flex w-full items-center rounded py-2 text-xs text-fg/25 transition-colors duration-150 hover:text-fg/45"
-      [class]="collapsed() ? 'justify-center px-0' : 'gap-3 px-3'"
+      class="flex items-center pt-2 pb-2 w-full bg-transparent border-0 rounded text-zinc-500 cursor-pointer font-sans text-xs transition-all duration-200 hover:text-zinc-950 dark:hover:text-zinc-100"
+      [class]="collapsed() ? 'px-0 justify-center' : 'px-3 justify-start'"
       [attr.aria-label]="collapsed() ? 'Sign out' : null"
       [attr.title]="collapsed() ? 'Sign out' : null"
       (click)="signOut.emit()"
     >
-      <svg lucideLogOut [size]="16" [strokeWidth]="1.5" class="shrink-0" />
+      <svg lucideLogOut [size]="16" [strokeWidth]="1.4" class="shrink-0" />
       @if (!collapsed()) {
-        <span class="whitespace-nowrap">Sign out</span>
+        <span>Sign out</span>
       }
     </button>
   </div>

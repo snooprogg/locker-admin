@@ -1,8 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectorRef  } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { LucideSunDim, LucideMoon } from '@lucide/angular';
 import { SettingsService } from '../../services/settings';
+import { SupabaseService } from '../../services/supabase.service';
+import { FunctionsService } from '../../services/functions.service';
 
 @Component({
   selector: 'app-login',
@@ -14,7 +16,11 @@ import { SettingsService } from '../../services/settings';
 export class LoginComponent {
   private settings = inject(SettingsService);
   private fb = inject(NonNullableFormBuilder);
-
+  private supabase = inject(SupabaseService);
+  private fs= inject(FunctionsService);
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
+  
   theme = this.settings.theme;
   ariaThemeLabel = this.settings.themeLabel;
 
@@ -42,7 +48,7 @@ export class LoginComponent {
     this.settings.toggleTheme();
   }
 
-  onSubmit() {
+  async onSubmit() {
     this.error = null;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -52,9 +58,30 @@ export class LoginComponent {
     this.loading = true;
     this.form.disable();
     // TODO: call your auth service with { email, password }
+          try {
+        // Sign in with Supabase
+        const { data, error } = await this.supabase.signIn(email, password);
+
+        if (error) {
+          throw error;
+        }
+
+        if (data.session) {
+          // Save session token
+          this.fs.saveSupabaseSession(data.session);
+          console.log('Login successful, session:', data.session);
+          this.router.navigate(['home']);
+        }
+      } catch (error: any) {
+        console.error('Login error:', error);
+      } finally {
+        // Reset loading state
+        this.loading = false;
+        //this.form.reset();
+        this.form.enable();
+        this.cdr.detectChanges();
+      }
     console.log('Login submit', { email, password });
-    this.loading = false;
-    this.form.enable();
   }
 
   onForgotPassword() {}

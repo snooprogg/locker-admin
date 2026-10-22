@@ -1,7 +1,36 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, inject, output, signal } from '@angular/core';
-import { NgTemplateOutlet } from '@angular/common';
-import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { LucideChevronDown, LucideImage, LucideX } from '@lucide/angular';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { FormControl, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { LucideX } from '@lucide/angular';
+import { firstValueFrom } from 'rxjs';
+import { ApiCallsService } from '../../../../services/apicalls.service';
+
+const SCHEMA = 'catalog';
+const IMAGE_BUCKET = 'product-images';
+
+/** Row shape of catalog.products */
+export interface ProductRow {
+  id: string;
+  product_name: string;
+  description: string | null;
+  internal_sku: string | null;
+  barcode_upc: string | null;
+  category: string | null;
+  product_image_url: string | null;
+  status: ProductStatus;
+  selling_unit: string | null;
+  selling_price: number | null;
+  taxable: boolean;
+  vendor_id: string;
+  vendor_sku: string | null;
+  purchase_unit: string | null;
+  quantity_per_purchase_unit: number | null;
+  current_purchase_cost: number | null;
+  minimum_order_quantity: number | null;
+  reorder_url: string | null;
+  ordering_notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 export type ProductStatus = 'active' | 'draft' | 'inactive';
 
@@ -45,159 +74,205 @@ const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
 @Component({
   selector: 'app-add-product',
-  imports: [ReactiveFormsModule, NgTemplateOutlet, LucideChevronDown, LucideImage, LucideX],
+  imports: [ReactiveFormsModule, LucideX],
   templateUrl: './add.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
 })
-export class AddProducts implements OnDestroy {
-  private readonly fb = inject(NonNullableFormBuilder);
-
-  /** Emits the form value when Save is clicked and the form is valid. */
-  readonly save = output<AddProducts['form']['value']>();
-  readonly discard = output<void>();
+export class AddProducts {
+  private fb = inject(NonNullableFormBuilder);
+  private api = inject(ApiCallsService);
 
   readonly categories = CATEGORIES;
   readonly statuses = STATUSES;
   readonly sellingUnits = SELLING_UNITS;
   readonly purchaseUnits = PURCHASE_UNITS;
   readonly vendors = VENDORS;
-  readonly taxableOptions: Option<boolean>[] = [
-    { value: true, label: 'Yes' },
-    { value: false, label: 'No' },
-  ];
 
-  readonly form = this.fb.group({
-    basic: this.fb.group({
-      name: ['', Validators.required],
-      sku: [''],
-      description: [''],
-      barcode: [''],
-      category: [''],
-      status: this.fb.control<ProductStatus>('active'),
-      image: this.fb.control<File | null>(null),
-    }),
-    sales: this.fb.group({
-      sellingUnit: ['each'],
-      sellingPrice: this.fb.control<number | null>(null, [Validators.required, Validators.min(0)]),
-      taxable: [true],
-    }),
-    vendor: this.fb.group({
-      vendorId: [''],
-      vendorSku: [''],
-      purchaseUnit: ['case'],
-      qtyPerPurchaseUnit: this.fb.control<number | null>(null, Validators.min(1)),
-      purchaseCost: this.fb.control<number | null>(null, Validators.min(0)),
-      minOrderQty: this.fb.control<number | null>(null, Validators.min(1)),
-      reorderUrl: ['', Validators.pattern(/^https?:\/\/.+/i)],
-      orderingNotes: [''],
-    }),
+  readonly imageTypes = IMAGE_TYPES.join(',');
+  imagePreview = signal<string | null>(null);
+  imageError = signal<string | null>(null);
+  dragging = signal(false);
+  saving = signal(false);
+  error = signal<string | null>(null);
+  success = signal<string | null>(null);
+
+  form = this.fb.group({
+    name: ['', [Validators.required, Validators.maxLength(120)]],
+    sku: [''],
+    description: [''],
+    barcode: [''],
+    category: ['', Validators.required],
+    status: this.fb.control<ProductStatus>('active'),
+    image: new FormControl<File | null>(null),
+    sellingUnit: [SELLING_UNITS[0].value],
+    sellingPrice: this.fb.control<number | null>(null, [Validators.required, Validators.min(0)]),
+    taxable: [true],
+    vendor: [''],
+    vendorSku: [''],
+    purchaseUnit: [PURCHASE_UNITS[0].value],
+    qtyPerPurchaseUnit: this.fb.control<number | null>(null, Validators.min(1)),
+    purchaseCost: this.fb.control<number | null>(null, Validators.min(0)),
+    minOrderQty: this.fb.control<number | null>(null, Validators.min(0)),
+    reorderUrl: ['', Validators.pattern(/^https?:\/\/.+/i)],
+    orderingNotes: [''],
   });
 
-  readonly imagePreview = signal<string | null>(null);
-  readonly imageError = signal<string | null>(null);
-  readonly dragging = signal(false);
-
-  // Shared Tailwind class strings (Tailwind v4 picks these up from .ts files too).
-  readonly labelCls =
-    'mb-[5px] block text-[11px] leading-[16.5px] font-medium tracking-[0.03em] text-fg/45';
-  readonly btnSecondary =
-    'rounded border border-fg/7 px-[18px] py-[9px] text-[13px] leading-[19.5px] text-fg/45 transition-colors duration-150 hover:border-fg/15 hover:text-fg/75';
-  readonly btnPrimary =
-    'rounded bg-green px-5 py-[9px] text-[13px] leading-[19.5px] font-semibold tracking-[0.04em] text-ink shadow-[0_2px_8px] shadow-green/25 transition-colors duration-150 hover:bg-green-dark';
-  private readonly controlBase =
-    'w-full rounded border px-3 py-[9px] text-[13px] leading-[19.5px] text-fg outline-none transition-colors duration-150 placeholder:text-fg/50 focus:bg-fg/6 ';
-  readonly selectCls = 'cursor-pointer appearance-none pr-8';
-  readonly numberCls =
-    '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none';
-  private readonly controlOk = 'border-fg/7 bg-fg/4 focus:border-green';
-  private readonly controlErr = 'border-error bg-fg/4 focus:border-error';
-
-  /** Classes for an input/select/textarea, switching to the error border when invalid. */
-  control(path: string, extra = ''): string {
-    return this.controlBase + (this.showError(path) ? this.controlErr : this.controlOk) + ' ' + extra;
+  get f() {
+    return this.form.controls;
   }
 
-  /** Classes for one segment of a segmented toggle (Status, Taxable). */
-  segment(on: boolean): string {
-    return (
-      'rounded border px-4 py-[7px] text-xs leading-[18px] transition-colors duration-150 ' +
-      (on
-        ? 'border-green bg-green/10 font-medium text-green'
-        : 'border-fg/7 bg-fg/3 text-fg/45 hover:text-fg/75')
-    );
+  invalid(name: keyof typeof this.form.controls) {
+    const c = this.form.controls[name];
+    return c.invalid && (c.touched || c.dirty);
   }
 
-  /** True when the control at `path` (e.g. 'basic.name') should show an error. */
-  showError(path: string): boolean {
-    const c = this.form.get(path);
-    return !!c && c.invalid && (c.touched || c.dirty);
+  setStatus(status: ProductStatus) {
+    this.f.status.setValue(status);
+    this.f.status.markAsDirty();
   }
 
-  onSave(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-    // Not wired to a backend yet — log it and let a parent handle it if it wants.
-    console.log('Add product', this.form.getRawValue());
-    this.save.emit(this.form.getRawValue());
+  setTaxable(taxable: boolean) {
+    this.f.taxable.setValue(taxable);
+    this.f.taxable.markAsDirty();
   }
 
-  onDiscard(): void {
-    this.form.reset();
-    this.clearImage();
-    this.discard.emit();
-  }
-
-  // ---- Image dropzone ------------------------------------------------------
-
-  onFileInput(event: Event): void {
+  onImageSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     this.setImage(input.files?.[0] ?? null);
-    input.value = ''; // allow re-selecting the same file
+    input.value = '';
   }
 
-  onDragOver(event: DragEvent): void {
+  onDragOver(event: DragEvent) {
     event.preventDefault();
     this.dragging.set(true);
   }
 
-  onDrop(event: DragEvent): void {
+  onDragLeave() {
+    this.dragging.set(false);
+  }
+
+  onDrop(event: DragEvent) {
     event.preventDefault();
     this.dragging.set(false);
     this.setImage(event.dataTransfer?.files?.[0] ?? null);
   }
 
-  clearImage(): void {
-    this.revokePreview();
-    this.imagePreview.set(null);
-    this.imageError.set(null);
-    this.form.controls.basic.controls.image.setValue(null);
+  clearImage() {
+    this.setImage(null);
   }
 
-  private setImage(file: File | null): void {
-    if (!file) return;
-    if (!IMAGE_TYPES.includes(file.type)) {
-      this.imageError.set('Use a PNG, JPG, or WEBP image.');
+  private setImage(file: File | null) {
+    this.imageError.set(null);
+    if (file) {
+      if (!IMAGE_TYPES.includes(file.type)) {
+        this.imageError.set('Only PNG, JPG, or WEBP images are allowed.');
+        return;
+      }
+      if (file.size > MAX_IMAGE_BYTES) {
+        this.imageError.set('Image must be 4 MB or smaller.');
+        return;
+      }
+    }
+    const prev = this.imagePreview();
+    if (prev) URL.revokeObjectURL(prev);
+    this.imagePreview.set(file ? URL.createObjectURL(file) : null);
+    this.f.image.setValue(file);
+    this.f.image.markAsDirty();
+  }
+
+  onDiscard() {
+    this.setImage(null);
+    this.form.reset();
+    this.error.set(null);
+    this.success.set(null);
+  }
+
+  async onSubmit() {
+    this.error.set(null);
+    this.success.set(null);
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
       return;
     }
-    if (file.size > MAX_IMAGE_BYTES) {
-      this.imageError.set('Image must be 4 MB or smaller.');
-      return;
+    const v = this.form.getRawValue();
+    this.saving.set(true);
+    this.form.disable();
+
+    try {
+      const product = await this.insertProduct(v);
+      if (v.image) await this.attachImage(product.id, v.image);
+      this.success.set(`"${product.product_name}" saved.`);
+      this.setImage(null);
+      this.form.reset();
+    } catch (err) {
+      this.error.set(this.describeError(err));
+    } finally {
+      this.saving.set(false);
+      this.form.enable();
     }
-    this.revokePreview();
-    this.imageError.set(null);
-    this.imagePreview.set(URL.createObjectURL(file));
-    this.form.controls.basic.controls.image.setValue(file);
   }
 
-  private revokePreview(): void {
-    const url = this.imagePreview();
-    if (url) URL.revokeObjectURL(url);
+  private async insertProduct(v: ReturnType<typeof this.form.getRawValue>): Promise<ProductRow> {
+    const text = (s: string) => (s.trim() === '' ? null : s.trim());
+    const row = {
+      product_name: v.name.trim(),
+      description: text(v.description),
+      internal_sku: text(v.sku),
+      barcode_upc: text(v.barcode),
+      category: text(v.category),
+      status: v.status,
+      selling_unit: text(v.sellingUnit),
+      selling_price: v.sellingPrice,
+      taxable: v.taxable,
+      vendor_sku: text(v.vendorSku),
+      purchase_unit: text(v.purchaseUnit),
+      quantity_per_purchase_unit: v.qtyPerPurchaseUnit,
+      current_purchase_cost: v.purchaseCost,
+      minimum_order_quantity: v.minOrderQty,
+      reorder_url: text(v.reorderUrl),
+      ordering_notes: text(v.orderingNotes),
+    };
+    const [product] = await firstValueFrom(
+      this.api.apiCall('rest/v1/products', 'POST', row, true, {
+        schema: SCHEMA,
+        headers: { Prefer: 'return=representation' },
+      }),
+    );
+    return product as ProductRow;
   }
 
-  ngOnDestroy(): void {
-    this.revokePreview();
+  /** Upload to storage, record it in catalog.images, and set the product's image URL. */
+  private async attachImage(productId: string, file: File) {
+    const safeName = file.name.replace(/[^\w.-]+/g, '_');
+    const objectPath = `${productId}/${Date.now()}-${safeName}`;
+
+    await firstValueFrom(this.api.apiCall(`storage/v1/object/${IMAGE_BUCKET}/${objectPath}`, 'POST', file, true));
+
+    await firstValueFrom(
+      this.api.apiCall(
+        'rest/v1/images',
+        'POST',
+        { product_id: productId, bucket_id: IMAGE_BUCKET, object_path: objectPath, is_primary: true, alt_text: file.name },
+        true,
+        { schema: SCHEMA },
+      ),
+    );
+
+    await firstValueFrom(
+      this.api.apiCall(
+        `rest/v1/products?id=eq.${productId}`,
+        'PATCH',
+        { product_image_url: this.api.publicUrl(IMAGE_BUCKET, objectPath) },
+        true,
+        { schema: SCHEMA },
+      ),
+    );
+  }
+
+  private describeError(err: unknown): string {
+    const e = err as { error?: { message?: string; details?: string; hint?: string }; message?: string; status?: number };
+    if (e?.status === 401 || e?.status === 403) return 'You are not authorized to add products. Please sign in again.';
+    return e?.error?.message ?? e?.message ?? 'Something went wrong while saving the product.';
   }
 }
