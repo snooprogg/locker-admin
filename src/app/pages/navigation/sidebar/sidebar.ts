@@ -42,10 +42,13 @@ export const DEFAULT_NAV: NavEntry[] = [
         icon: LucidePackage,
         children: [
           { label: 'Add', route: '/catalog/products/add' },
-          { label: 'Create', route: '/catalog/products/create' },
         ],
       },
-      { label: 'Vendors', icon: LucideBriefcase, route: '/catalog/vendors' },
+      { label: 'Vendors', icon: LucideBriefcase, 
+        children: [
+          { label: 'Add', route: '/catalog/vendors/add' },
+        ] 
+      },
     ],
   },
   {

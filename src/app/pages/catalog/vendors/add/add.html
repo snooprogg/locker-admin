@@ -1,0 +1,133 @@
+<main class="flex-1 overflow-y-auto p-6 flex flex-col gap-5">
+  <form novalidate [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
+    @if (!embedded()) {
+      <div class="flex items-end justify-between flex-wrap gap-3">
+        <div>
+          <div class="font-mono text-[0.625rem] tracking-widest uppercase text-emerald-500 mb-1">Catalog · Vendors</div>
+          <h1
+            class="font-sans text-2xl font-semibold text-zinc-950 dark:text-zinc-100 m-0 tracking-tight transition-all duration-200">
+            Add Vendor</h1>
+        </div>
+        <div class="flex gap-2.5"><button type="button" (click)="onDiscard()" [disabled]="saving()"
+            class="pt-2.25 pr-4.5 pb-2.25 pl-4.5 bg-transparent border border-zinc-200 dark:border-zinc-800 rounded text-zinc-600 dark:text-zinc-400 font-sans text-[0.8125rem] cursor-pointer transition-all duration-200 disabled:opacity-60">Discard</button><button
+            type="submit" [disabled]="saving()"
+            class="pt-2.25 pr-5 pb-2.25 pl-5 bg-emerald-500 border-0 rounded text-zinc-950 font-sans text-[0.8125rem] font-semibold cursor-pointer tracking-wide shadow-md shadow-emerald-500/20 transition-all duration-200 hover:bg-emerald-600 disabled:cursor-wait disabled:opacity-60">{{ saving() ? 'Saving…' : 'Save Vendor' }}</button></div>
+      </div>
+    }
+
+    @if (error()) {
+      <p role="alert" class="rounded border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-red-500">{{ error() }}</p>
+    }
+    @if (success()) {
+      <p role="status" class="rounded border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-500">{{ success() }}</p>
+    }
+
+    <!-- ================= 1. Vendor Details ================= -->
+    <div
+      class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md overflow-hidden transition-all duration-200">
+      <div class="pt-4 pr-6 pb-4 pl-6 border-b border-b-zinc-200 dark:border-b-zinc-800 flex items-center gap-3">
+        <div
+          class="w-6 h-6 rounded-full bg-emerald-500/12 border border-emerald-500/30 flex items-center justify-center shrink-0">
+          <span class="font-mono text-[0.625rem] font-semibold text-emerald-500">1</span></div>
+        <div>
+          <div class="font-sans text-[0.8125rem] font-semibold text-zinc-950 dark:text-zinc-100 mb-0.5">Vendor Details</div>
+          <div class="font-sans text-xs text-zinc-500 mb-5">Who the supplier is and whether they are currently in use</div>
+        </div>
+      </div>
+      <div class="p-6">
+        <div class="form-grid grid grid-cols-1 min-[701px]:grid-cols-2 gap-y-4.5 gap-x-6">
+          <div><label for="name"
+              class="font-sans text-[0.6875rem] font-medium text-zinc-600 dark:text-zinc-400 tracking-wide mb-1.25 block">Vendor
+              Name *</label><input id="name" formControlName="name" placeholder="e.g. Spoke Technologies"
+              [attr.aria-invalid]="invalid('name')"
+              class="focus:border-emerald-500 dark:focus:border-emerald-500 focus:bg-white/6 w-full box-border bg-white/4 border rounded text-zinc-950 dark:text-zinc-100 font-sans text-[0.8125rem] pt-2.25 pr-3 pb-2.25 pl-3 outline-none caret-emerald-500 transition-all duration-200"
+              [class]="invalid('name') ? 'border-red-500' : 'border-zinc-200 dark:border-zinc-800'"
+              type="text">
+            @if (invalid('name')) {
+              <p class="mt-1 text-xs text-red-500">
+                @if (f.name.hasError('required')) { Vendor name is required. }
+                @else if (f.name.hasError('maxlength')) { Vendor name must be 120 characters or fewer. }
+              </p>
+            }
+          </div>
+          <div><label
+              class="font-sans text-[0.6875rem] font-medium text-zinc-600 dark:text-zinc-400 tracking-wide mb-1.25 block">Status</label>
+            <div class="flex gap-2 flex-wrap" role="radiogroup" aria-label="Status">
+              @for (s of statuses; track s.value) {
+                <button type="button" role="radio" (click)="setStatus(s.value)"
+                  [attr.aria-checked]="f.status.value === s.value"
+                  class="pt-1.75 pr-4 pb-1.75 pl-4 rounded border font-sans text-xs cursor-pointer transition-all duration-200"
+                  [class]="f.status.value === s.value
+                    ? 'border-emerald-500 bg-emerald-500/10 text-emerald-500 font-medium'
+                    : 'border-zinc-200 dark:border-zinc-800 bg-white/3 text-zinc-600 dark:text-zinc-400 font-normal'">{{ s.label }}</button>
+              }
+            </div>
+          </div>
+          <div class="col-span-full"><label for="notes"
+              class="font-sans text-[0.6875rem] font-medium text-zinc-600 dark:text-zinc-400 tracking-wide mb-1.25 block">Notes</label><textarea
+              id="notes" formControlName="notes"
+              placeholder="Account numbers, lead times, payment terms, special instructions…" rows="3"
+              class="focus:border-emerald-500 dark:focus:border-emerald-500 focus:bg-white/6 w-full box-border bg-white/4 border border-zinc-200 dark:border-zinc-800 rounded text-zinc-950 dark:text-zinc-100 font-sans text-[0.8125rem] pt-2.25 pr-3 pb-2.25 pl-3 outline-none caret-emerald-500 transition-all duration-200 resize-y leading-relaxed"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= 2. Contact Information ================= -->
+    <div
+      class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md overflow-hidden transition-all duration-200">
+      <div class="pt-4 pr-6 pb-4 pl-6 border-b border-b-zinc-200 dark:border-b-zinc-800 flex items-center gap-3">
+        <div
+          class="w-6 h-6 rounded-full bg-emerald-500/12 border border-emerald-500/30 flex items-center justify-center shrink-0">
+          <span class="font-mono text-[0.625rem] font-semibold text-emerald-500">2</span></div>
+        <div>
+          <div class="font-sans text-[0.8125rem] font-semibold text-zinc-950 dark:text-zinc-100 mb-0.5">Contact
+            Information</div>
+          <div class="font-sans text-xs text-zinc-500 mb-5">Primary point of contact for orders and support</div>
+        </div>
+      </div>
+      <div class="p-6">
+        <div class="form-grid grid grid-cols-1 min-[701px]:grid-cols-2 gap-y-4.5 gap-x-6">
+          <div><label for="contact"
+              class="font-sans text-[0.6875rem] font-medium text-zinc-600 dark:text-zinc-400 tracking-wide mb-1.25 block">Contact
+              Person</label><input id="contact" formControlName="contact" placeholder="e.g. Jane Doe"
+              [attr.aria-invalid]="invalid('contact')"
+              class="focus:border-emerald-500 dark:focus:border-emerald-500 focus:bg-white/6 w-full box-border bg-white/4 border rounded text-zinc-950 dark:text-zinc-100 font-sans text-[0.8125rem] pt-2.25 pr-3 pb-2.25 pl-3 outline-none caret-emerald-500 transition-all duration-200"
+              [class]="invalid('contact') ? 'border-red-500' : 'border-zinc-200 dark:border-zinc-800'"
+              type="text">
+            @if (invalid('contact')) {
+              <p class="mt-1 text-xs text-red-500">Contact name must be 120 characters or fewer.</p>
+            }
+          </div>
+          <div><label for="phone"
+              class="font-sans text-[0.6875rem] font-medium text-zinc-600 dark:text-zinc-400 tracking-wide mb-1.25 block">Phone</label><input
+              id="phone" formControlName="phone" placeholder="e.g. (555) 123-4567"
+              [attr.aria-invalid]="invalid('phone')"
+              class="focus:border-emerald-500 dark:focus:border-emerald-500 focus:bg-white/6 w-full box-border bg-white/4 border rounded text-zinc-950 dark:text-zinc-100 font-sans text-[0.8125rem] pt-2.25 pr-3 pb-2.25 pl-3 outline-none caret-emerald-500 transition-all duration-200"
+              [class]="invalid('phone') ? 'border-red-500' : 'border-zinc-200 dark:border-zinc-800'"
+              type="tel">
+            @if (invalid('phone')) {
+              <p class="mt-1 text-xs text-red-500">Enter a valid phone number (digits, spaces, dashes, parentheses).</p>
+            }
+          </div>
+          <div><label for="email"
+              class="font-sans text-[0.6875rem] font-medium text-zinc-600 dark:text-zinc-400 tracking-wide mb-1.25 block">Email</label><input
+              id="email" formControlName="email" placeholder="e.g. orders@vendor.com"
+              [attr.aria-invalid]="invalid('email')"
+              class="focus:border-emerald-500 dark:focus:border-emerald-500 focus:bg-white/6 w-full box-border bg-white/4 border rounded text-zinc-950 dark:text-zinc-100 font-sans text-[0.8125rem] pt-2.25 pr-3 pb-2.25 pl-3 outline-none caret-emerald-500 transition-all duration-200"
+              [class]="invalid('email') ? 'border-red-500' : 'border-zinc-200 dark:border-zinc-800'"
+              type="email">
+            @if (invalid('email')) {
+              <p class="mt-1 text-xs text-red-500">Enter a valid email address.</p>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-2.5 pb-2"><button type="button" (click)="onDiscard()" [disabled]="saving()"
+        class="pt-2.25 pr-4.5 pb-2.25 pl-4.5 bg-transparent border border-zinc-200 dark:border-zinc-800 rounded text-zinc-600 dark:text-zinc-400 font-sans text-[0.8125rem] cursor-pointer disabled:opacity-60">Discard</button><button
+        type="submit" [disabled]="saving()"
+        class="pt-2.25 pr-5 pb-2.25 pl-5 bg-emerald-500 border-0 rounded text-zinc-950 font-sans text-[0.8125rem] font-semibold cursor-pointer tracking-wide shadow-md shadow-emerald-500/20 hover:bg-emerald-600 disabled:cursor-wait disabled:opacity-60">{{ saving() ? 'Saving…' : 'Save Vendor' }}</button></div>
+  </form>
+</main>

@@ -1,11 +1,14 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { FormControl, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LucideX } from '@lucide/angular';
 import { firstValueFrom } from 'rxjs';
 import { ApiCallsService } from '../../../../services/apicalls.service';
+import { AddVendor, VendorRow } from '../../vendors/add/add';
 
 const SCHEMA = 'catalog';
 const IMAGE_BUCKET = 'product-images';
+/** Sentinel value for the "Create new…" vendor option. */
+export const NEW_VENDOR = '__new__';
 
 /** Row shape of catalog.products */
 export interface ProductRow {
@@ -62,24 +65,18 @@ export const PURCHASE_UNITS: Option[] = ['Case', 'Box', 'Each', 'Pallet', 'Carto
   label: l,
 }));
 
-export const VENDORS: Option[] = [
-  { value: 'spoke', label: 'Spoke Technologies' },
-  { value: 'acme', label: 'Acme Lockers Ltd.' },
-  { value: 'securebox', label: 'SecureBox Inc.' },
-  { value: 'novatech', label: 'NovaTech Systems' },
-];
-
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
 @Component({
   selector: 'app-add-product',
-  imports: [ReactiveFormsModule, LucideX],
+  imports: [ReactiveFormsModule, LucideX, AddVendor],
   templateUrl: './add.html',
+  styleUrl: './add.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'block' },
+  host: { class: 'block', '(document:keydown.escape)': 'closeVendorOverlay()' },
 })
-export class AddProducts {
+export class AddProducts implements OnInit {
   private fb = inject(NonNullableFormBuilder);
   private api = inject(ApiCallsService);
 
@@ -87,7 +84,11 @@ export class AddProducts {
   readonly statuses = STATUSES;
   readonly sellingUnits = SELLING_UNITS;
   readonly purchaseUnits = PURCHASE_UNITS;
-  readonly vendors = VENDORS;
+  readonly NEW_VENDOR = NEW_VENDOR;
+
+  vendors = signal<Pick<VendorRow, 'id' | 'name'>[]>([]);
+  vendorsError = signal<string | null>(null);
+  vendorOverlay = signal(false);
 
   readonly imageTypes = IMAGE_TYPES.join(',');
   imagePreview = signal<string | null>(null);
@@ -122,9 +123,53 @@ export class AddProducts {
     return this.form.controls;
   }
 
+  ngOnInit() {
+    this.loadVendors();
+  }
+
   invalid(name: keyof typeof this.form.controls) {
     const c = this.form.controls[name];
     return c.invalid && (c.touched || c.dirty);
+  }
+
+  private async loadVendors() {
+    this.vendorsError.set(null);
+    try {
+      const rows = await firstValueFrom(
+        this.api.apiCall('rest/v1/vendor?select=id,name&order=name.asc', 'GET', null, true, { schema: SCHEMA }),
+      );
+      this.vendors.set(rows as Pick<VendorRow, 'id' | 'name'>[]);
+    } catch (err) {
+      this.vendorsError.set(this.describeError(err));
+    }
+  }
+
+  onVendorChange(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    if (select.value === NEW_VENDOR) {
+      // Reset to "Select vendor…"; the overlay sets the real value once a vendor is saved
+      this.f.vendor.setValue('');
+      this.vendorOverlay.set(true);
+    }
+  }
+
+  openVendorOverlay() {
+    this.vendorOverlay.set(true);
+  }
+
+  closeVendorOverlay() {
+    this.vendorOverlay.set(false);
+  }
+
+  onVendorCreated(vendor: VendorRow) {
+    this.vendors.update((list) =>
+      [...list.filter((v) => v.id !== vendor.id), { id: vendor.id, name: vendor.name }].sort((a, b) =>
+        a.name.localeCompare(b.name),
+      ),
+    );
+    this.f.vendor.setValue(vendor.id);
+    this.f.vendor.markAsDirty();
+    this.closeVendorOverlay();
   }
 
   setStatus(status: ProductStatus) {
@@ -225,6 +270,8 @@ export class AddProducts {
       selling_unit: text(v.sellingUnit),
       selling_price: v.sellingPrice,
       taxable: v.taxable,
+      // Only send vendor_id when one is chosen so the DB default still applies otherwise
+      ...(v.vendor && v.vendor !== NEW_VENDOR ? { vendor_id: v.vendor } : {}),
       vendor_sku: text(v.vendorSku),
       purchase_unit: text(v.purchaseUnit),
       quantity_per_purchase_unit: v.qtyPerPurchaseUnit,

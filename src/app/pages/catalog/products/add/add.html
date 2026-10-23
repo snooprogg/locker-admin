@@ -214,13 +214,18 @@
         <div class="form-grid grid grid-cols-1 min-[701px]:grid-cols-2 gap-y-4.5 gap-x-6">
           <div><label for="vendor"
               class="font-sans text-[0.6875rem] font-medium text-zinc-600 dark:text-zinc-400 tracking-wide mb-1.25 block">Primary
-              Vendor</label><select id="vendor" formControlName="vendor"
+              Vendor</label><select id="vendor" formControlName="vendor" (change)="onVendorChange($event)"
               class="focus:border-emerald-500 dark:focus:border-emerald-500 w-full box-border bg-white/4 border border-zinc-200 dark:border-zinc-800 rounded text-zinc-950 dark:text-zinc-100 font-sans text-[0.8125rem] pt-2.25 pr-3 pb-2.25 pl-3 outline-none caret-emerald-500 transition-all duration-200 cursor-pointer">
               <option value="">Select vendor…</option>
-              @for (v of vendors; track v.value) {
-                <option [value]="v.value">{{ v.label }}</option>
+              @for (v of vendors(); track v.id) {
+                <option [value]="v.id">{{ v.name }}</option>
               }
-            </select></div>
+              <option [value]="NEW_VENDOR" class="text-emerald-500">+ Create new…</option>
+            </select>
+            @if (vendorsError(); as msg) {
+              <p class="mt-1 text-xs text-red-500">Couldn't load vendors: {{ msg }}</p>
+            }
+          </div>
           <div><label for="vendorSku"
               class="font-sans text-[0.6875rem] font-medium text-zinc-600 dark:text-zinc-400 tracking-wide mb-1.25 block">Vendor
               SKU</label><input id="vendorSku" formControlName="vendorSku" placeholder="e.g. VND-SL-4492"
@@ -299,3 +304,26 @@
         class="pt-2.25 pr-5 pb-2.25 pl-5 bg-emerald-500 border-0 rounded text-zinc-950 font-sans text-[0.8125rem] font-semibold cursor-pointer tracking-wide shadow-md shadow-emerald-500/20 hover:bg-emerald-600 disabled:cursor-wait disabled:opacity-60">{{ saving() ? 'Saving…' : 'Save Product' }}</button></div>
   </form>
 </main>
+
+<!-- ================= Create Vendor overlay ================= -->
+@if (vendorOverlay()) {
+  <div animate.enter="backdrop-enter" animate.leave="backdrop-leave"
+    class="fixed inset-0 z-50 bg-zinc-950/60 backdrop-blur-sm" (click)="closeVendorOverlay()" aria-hidden="true"></div>
+  <div role="dialog" aria-modal="true" aria-labelledby="vendor-overlay-title"
+    animate.enter="dialog-enter" animate.leave="dialog-leave"
+    class="fixed inset-5 z-50 flex flex-col overflow-hidden rounded-lg border border-emerald-500 bg-zinc-100 dark:bg-zinc-950 shadow-[0_0_0_1px_rgba(16,185,129,0.35),0_0_24px_rgba(16,185,129,0.45),0_0_64px_rgba(16,185,129,0.2)]">
+    <div
+      class="shrink-0 flex items-center justify-between gap-4 pt-4 pr-5 pb-4 pl-6 border-b border-b-zinc-200 dark:border-b-zinc-800 bg-white dark:bg-zinc-900">
+      <div>
+        <div class="font-mono text-[0.625rem] tracking-widest uppercase text-emerald-500 mb-0.5">Catalog · Vendors</div>
+        <h2 id="vendor-overlay-title"
+          class="font-sans text-lg font-semibold text-zinc-950 dark:text-zinc-100 m-0 tracking-tight">Add Vendor</h2>
+      </div>
+      <button type="button" (click)="closeVendorOverlay()" aria-label="Close"
+        class="flex size-9 items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-500 hover:text-red-500 hover:border-red-500/40 cursor-pointer transition-all duration-200">
+        <svg lucideX class="size-4" aria-hidden="true"></svg>
+      </button>
+    </div>
+    <app-add-vendor [embedded]="true" class="flex-1 min-h-0 flex flex-col overflow-hidden" (saved)="onVendorCreated($event)" />
+  </div>
+}
