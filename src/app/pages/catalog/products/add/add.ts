@@ -3,57 +3,27 @@ import { FormControl, NonNullableFormBuilder, ReactiveFormsModule, Validators } 
 import { LucideX } from '@lucide/angular';
 import { firstValueFrom } from 'rxjs';
 import { ApiCallsService } from '../../../../services/apicalls.service';
-import { AddVendor, VendorRow } from '../../vendors/add/add';
+import { Option, ProductRow, ProductStatus, VendorRow } from '../../../../models/site';
+import { AddVendor } from '../../vendors/add/add';
+import { Toast } from '../../../../components/toast/toast';
 
 const SCHEMA = 'catalog';
 const IMAGE_BUCKET = 'product-images';
 /** Sentinel value for the "Create new…" vendor option. */
 export const NEW_VENDOR = '__new__';
 
-/** Row shape of catalog.products */
-export interface ProductRow {
-  id: string;
-  product_name: string;
-  description: string | null;
-  internal_sku: string | null;
-  barcode_upc: string | null;
-  category: string | null;
-  product_image_url: string | null;
-  status: ProductStatus;
-  selling_unit: string | null;
-  selling_price: number | null;
-  taxable: boolean;
-  vendor_id: string;
-  vendor_sku: string | null;
-  purchase_unit: string | null;
-  quantity_per_purchase_unit: number | null;
-  current_purchase_cost: number | null;
-  minimum_order_quantity: number | null;
-  reorder_url: string | null;
-  ordering_notes: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export type ProductStatus = 'active' | 'draft' | 'inactive';
-
-export interface Option<T = string> {
-  value: T;
-  label: string;
-}
-
 export const CATEGORIES: Option[] = [
   { value: 'locker-units', label: 'Locker Units' },
-  { value: 'accessories', label: 'Accessories' },
-  { value: 'spare-parts', label: 'Spare Parts' },
-  { value: 'consumables', label: 'Consumables' },
-  { value: 'software', label: 'Software' },
+  { value: 'accessories',  label: 'Accessories' },
+  { value: 'spare-parts',  label: 'Spare Parts' },
+  { value: 'consumables',  label: 'Consumables' },
+  { value: 'software',     label: 'Software' },
 ];
 
 export const STATUSES: Option<ProductStatus>[] = [
-  { value: 'active', label: 'Active' },
-  { value: 'draft', label: 'Draft' },
-  { value: 'inactive', label: 'Inactive' },
+  { value: 'active',      label: 'Active' },
+  { value: 'draft',       label: 'Draft' },
+  { value: 'inactive',    label: 'Inactive' },
 ];
 
 export const SELLING_UNITS: Option[] = ['Each', 'Box', 'Pack', 'Pair', 'Set', 'Kit', 'Bundle'].map(
@@ -70,7 +40,7 @@ const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
 @Component({
   selector: 'app-add-product',
-  imports: [ReactiveFormsModule, LucideX, AddVendor],
+  imports: [ReactiveFormsModule, LucideX, AddVendor, Toast],
   templateUrl: './add.html',
   styleUrl: './add.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -80,43 +50,43 @@ export class AddProducts implements OnInit {
   private fb = inject(NonNullableFormBuilder);
   private api = inject(ApiCallsService);
 
-  readonly categories = CATEGORIES;
-  readonly statuses = STATUSES;
-  readonly sellingUnits = SELLING_UNITS;
+  readonly categories    = CATEGORIES;
+  readonly statuses      = STATUSES;
+  readonly sellingUnits  = SELLING_UNITS;
   readonly purchaseUnits = PURCHASE_UNITS;
-  readonly NEW_VENDOR = NEW_VENDOR;
+  readonly NEW_VENDOR    = NEW_VENDOR;
+  readonly imageTypes    = IMAGE_TYPES.join(',');
 
-  vendors = signal<Pick<VendorRow, 'id' | 'name'>[]>([]);
-  vendorsError = signal<string | null>(null);
-  vendorOverlay = signal(false);
+  vendors         =           signal<Pick<VendorRow, 'id' | 'name'>[]>([]);
+  vendorsError    =           signal<string | null>(null);
+  vendorOverlay   =           signal(false);
 
-  readonly imageTypes = IMAGE_TYPES.join(',');
-  imagePreview = signal<string | null>(null);
-  imageError = signal<string | null>(null);
-  dragging = signal(false);
-  saving = signal(false);
-  error = signal<string | null>(null);
-  success = signal<string | null>(null);
+  imagePreview    =           signal<string | null>(null);
+  imageError      =           signal<string | null>(null);
+  dragging        =           signal(false);
+  saving          =           signal(false);
+  error           =           signal<string | null>(null);
+  success         =           signal<string | null>(null);
 
   form = this.fb.group({
-    name: ['', [Validators.required, Validators.maxLength(120)]],
-    sku: [''],
-    description: [''],
-    barcode: [''],
-    category: ['', Validators.required],
-    status: this.fb.control<ProductStatus>('active'),
-    image: new FormControl<File | null>(null),
-    sellingUnit: [SELLING_UNITS[0].value],
-    sellingPrice: this.fb.control<number | null>(null, [Validators.required, Validators.min(0)]),
-    taxable: [true],
-    vendor: [''],
-    vendorSku: [''],
-    purchaseUnit: [PURCHASE_UNITS[0].value],
+    name:               ['', [Validators.required, Validators.maxLength(120)]],
+    sku:                [''],
+    description:        [''],
+    barcode:            [''],
+    category:           ['', Validators.required],
+    status:             this.fb.control<ProductStatus>('active'),
+    image:              new FormControl<File | null>(null),
+    sellingUnit:        [SELLING_UNITS[0].value],
+    sellingPrice:       this.fb.control<number | null>(null, [Validators.required, Validators.min(0)]),
+    taxable:            [true],
+    vendor:             [''],
+    vendorSku:          [''],
+    purchaseUnit:       [PURCHASE_UNITS[0].value],
     qtyPerPurchaseUnit: this.fb.control<number | null>(null, Validators.min(1)),
-    purchaseCost: this.fb.control<number | null>(null, Validators.min(0)),
-    minOrderQty: this.fb.control<number | null>(null, Validators.min(0)),
-    reorderUrl: ['', Validators.pattern(/^https?:\/\/.+/i)],
-    orderingNotes: [''],
+    purchaseCost:       this.fb.control<number | null>(null, Validators.min(0)),
+    minOrderQty:        this.fb.control<number | null>(null, Validators.min(0)),
+    reorderUrl:         ['', Validators.pattern(/^https?:\/\/.+/i)],
+    orderingNotes:      [''],
   });
 
   get f() {
@@ -246,7 +216,7 @@ export class AddProducts implements OnInit {
 
     try {
       const product = await this.insertProduct(v);
-      if (v.image) await this.attachImage(product.id, v.image);
+      if (v.image)    await this.attachImage(product.id, v.image);
       this.success.set(`"${product.product_name}" saved.`);
       this.setImage(null);
       this.form.reset();
@@ -261,24 +231,24 @@ export class AddProducts implements OnInit {
   private async insertProduct(v: ReturnType<typeof this.form.getRawValue>): Promise<ProductRow> {
     const text = (s: string) => (s.trim() === '' ? null : s.trim());
     const row = {
-      product_name: v.name.trim(),
-      description: text(v.description),
-      internal_sku: text(v.sku),
-      barcode_upc: text(v.barcode),
-      category: text(v.category),
-      status: v.status,
-      selling_unit: text(v.sellingUnit),
-      selling_price: v.sellingPrice,
-      taxable: v.taxable,
+      product_name:               v.name.trim(),
+      description:                text(v.description),
+      internal_sku:               text(v.sku),
+      barcode_upc:                text(v.barcode),
+      category:                   text(v.category),
+      status:                     v.status,
+      selling_unit:               text(v.sellingUnit),
+      selling_price:              v.sellingPrice,
+      taxable:                    v.taxable,
       // Only send vendor_id when one is chosen so the DB default still applies otherwise
       ...(v.vendor && v.vendor !== NEW_VENDOR ? { vendor_id: v.vendor } : {}),
-      vendor_sku: text(v.vendorSku),
-      purchase_unit: text(v.purchaseUnit),
+      vendor_sku:                 text(v.vendorSku),
+      purchase_unit:              text(v.purchaseUnit),
       quantity_per_purchase_unit: v.qtyPerPurchaseUnit,
-      current_purchase_cost: v.purchaseCost,
-      minimum_order_quantity: v.minOrderQty,
-      reorder_url: text(v.reorderUrl),
-      ordering_notes: text(v.orderingNotes),
+      current_purchase_cost:      v.purchaseCost,
+      minimum_order_quantity:     v.minOrderQty,
+      reorder_url:                text(v.reorderUrl),
+      ordering_notes:             text(v.orderingNotes),
     };
     const [product] = await firstValueFrom(
       this.api.apiCall('rest/v1/products', 'POST', row, true, {

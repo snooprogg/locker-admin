@@ -15,12 +15,8 @@
       </div>
     }
 
-    @if (error()) {
-      <p role="alert" class="rounded border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-red-500">{{ error() }}</p>
-    }
-    @if (success()) {
-      <p role="status" class="rounded border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-500">{{ success() }}</p>
-    }
+    <app-toast [message]="error()" type="error" (closed)="error.set(null)" />
+    <app-toast [message]="success()" type="success" (closed)="success.set(null)" />
 
     <!-- ================= 1. Vendor Details ================= -->
     <div

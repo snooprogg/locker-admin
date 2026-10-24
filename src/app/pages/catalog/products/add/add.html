@@ -13,12 +13,8 @@
           class="pt-2.25 pr-5 pb-2.25 pl-5 bg-emerald-500 border-0 rounded text-zinc-950 font-sans text-[0.8125rem] font-semibold cursor-pointer tracking-wide shadow-md shadow-emerald-500/20 transition-all duration-200 hover:bg-emerald-600 disabled:cursor-wait disabled:opacity-60">{{ saving() ? 'Saving…' : 'Save Product' }}</button></div>
     </div>
 
-    @if (error()) {
-      <p role="alert" class="rounded border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-red-500">{{ error() }}</p>
-    }
-    @if (success()) {
-      <p role="status" class="rounded border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-500">{{ success() }}</p>
-    }
+    <app-toast [message]="error()" type="error" (closed)="error.set(null)" />
+    <app-toast [message]="success()" type="success" (closed)="success.set(null)" />
 
     <!-- ================= 1. Basic Information ================= -->
     <div
@@ -69,7 +65,7 @@
               class="font-sans text-[0.6875rem] font-medium text-zinc-600 dark:text-zinc-400 tracking-wide mb-1.25 block">Category
               *</label><select id="category" formControlName="category"
               [attr.aria-invalid]="invalid('category')"
-              class="focus:border-emerald-500 dark:focus:border-emerald-500 w-full box-border bg-white/4 border rounded text-zinc-950 dark:text-zinc-100 font-sans text-[0.8125rem] pt-2.25 pr-3 pb-2.25 pl-3 outline-none caret-emerald-500 transition-all duration-200 cursor-pointer"
+              class="focus:border-emerald-500 dark:focus:border-emerald-500 w-full box-border bg-white/4 border rounded text-zinc-950 dark:text-zinc-100 font-sans text-[0.8125rem] pt-2.25 pr-9 pb-2.25 pl-3 outline-none caret-emerald-500 transition-all duration-200 cursor-pointer"
               [class]="invalid('category') ? 'border-red-500' : 'border-zinc-200 dark:border-zinc-800'">
               <option value="" disabled>Select category…</option>
               @for (c of categories; track c.value) {
@@ -158,7 +154,7 @@
           <div><label for="sellingUnit"
               class="font-sans text-[0.6875rem] font-medium text-zinc-600 dark:text-zinc-400 tracking-wide mb-1.25 block">Selling
               Unit</label><select id="sellingUnit" formControlName="sellingUnit"
-              class="focus:border-emerald-500 dark:focus:border-emerald-500 w-full box-border bg-white/4 border border-zinc-200 dark:border-zinc-800 rounded text-zinc-950 dark:text-zinc-100 font-sans text-[0.8125rem] pt-2.25 pr-3 pb-2.25 pl-3 outline-none caret-emerald-500 transition-all duration-200 cursor-pointer">
+              class="focus:border-emerald-500 dark:focus:border-emerald-500 w-full box-border bg-white/4 border border-zinc-200 dark:border-zinc-800 rounded text-zinc-950 dark:text-zinc-100 font-sans text-[0.8125rem] pt-2.25 pr-9 pb-2.25 pl-3 outline-none caret-emerald-500 transition-all duration-200 cursor-pointer">
               @for (u of sellingUnits; track u.value) {
                 <option [value]="u.value">{{ u.label }}</option>
               }
@@ -215,7 +211,7 @@
           <div><label for="vendor"
               class="font-sans text-[0.6875rem] font-medium text-zinc-600 dark:text-zinc-400 tracking-wide mb-1.25 block">Primary
               Vendor</label><select id="vendor" formControlName="vendor" (change)="onVendorChange($event)"
-              class="focus:border-emerald-500 dark:focus:border-emerald-500 w-full box-border bg-white/4 border border-zinc-200 dark:border-zinc-800 rounded text-zinc-950 dark:text-zinc-100 font-sans text-[0.8125rem] pt-2.25 pr-3 pb-2.25 pl-3 outline-none caret-emerald-500 transition-all duration-200 cursor-pointer">
+              class="focus:border-emerald-500 dark:focus:border-emerald-500 w-full box-border bg-white/4 border border-zinc-200 dark:border-zinc-800 rounded text-zinc-950 dark:text-zinc-100 font-sans text-[0.8125rem] pt-2.25 pr-9 pb-2.25 pl-3 outline-none caret-emerald-500 transition-all duration-200 cursor-pointer">
               <option value="">Select vendor…</option>
               @for (v of vendors(); track v.id) {
                 <option [value]="v.id">{{ v.name }}</option>
@@ -234,7 +230,7 @@
           <div><label for="purchaseUnit"
               class="font-sans text-[0.6875rem] font-medium text-zinc-600 dark:text-zinc-400 tracking-wide mb-1.25 block">Purchase
               Unit</label><select id="purchaseUnit" formControlName="purchaseUnit"
-              class="focus:border-emerald-500 dark:focus:border-emerald-500 w-full box-border bg-white/4 border border-zinc-200 dark:border-zinc-800 rounded text-zinc-950 dark:text-zinc-100 font-sans text-[0.8125rem] pt-2.25 pr-3 pb-2.25 pl-3 outline-none caret-emerald-500 transition-all duration-200 cursor-pointer">
+              class="focus:border-emerald-500 dark:focus:border-emerald-500 w-full box-border bg-white/4 border border-zinc-200 dark:border-zinc-800 rounded text-zinc-950 dark:text-zinc-100 font-sans text-[0.8125rem] pt-2.25 pr-9 pb-2.25 pl-3 outline-none caret-emerald-500 transition-all duration-200 cursor-pointer">
               @for (u of purchaseUnits; track u.value) {
                 <option [value]="u.value">{{ u.label }}</option>
               }

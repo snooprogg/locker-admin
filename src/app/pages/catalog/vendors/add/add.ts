@@ -2,36 +2,19 @@ import { ChangeDetectionStrategy, Component, inject, input, output, signal } fro
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { ApiCallsService } from '../../../../services/apicalls.service';
+import { Option, VendorRow, VendorStatus } from '../../../../models/site';
+import { Toast } from '../../../../components/toast/toast';
 
 const SCHEMA = 'catalog';
-
-export type VendorStatus = 'active' | 'inactive';
-
-export interface Option<T = string> {
-  value: T;
-  label: string;
-}
 
 export const VENDOR_STATUSES: Option<VendorStatus>[] = [
   { value: 'active', label: 'Active' },
   { value: 'inactive', label: 'Inactive' },
 ];
 
-/** Row shape of catalog.vendor */
-export interface VendorRow {
-  id: string;
-  name: string;
-  contact: string | null;
-  phone: number | null;
-  email: string | null;
-  status: VendorStatus | null;
-  notes: string | null;
-  created_on: string;
-}
-
 @Component({
   selector: 'app-add-vendor',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, Toast],
   templateUrl: './add.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },

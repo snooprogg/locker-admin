@@ -21,6 +21,21 @@ body {
   @apply bg-zinc-100 font-sans text-zinc-950 antialiased dark:bg-zinc-950 dark:text-zinc-100;
 }
 
+/* Native selects: Safari ignores padding unless the OS appearance is removed, so draw our own chevron */
+@layer base {
+  select:not([multiple]):not([size]) {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2371717b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 0.875rem;
+    color-scheme: light;
+  }
+  [data-theme='dark'] select:not([multiple]):not([size]) {
+    color-scheme: dark;
+  }
+}
+
 /* Scrollbar */
 * {
   scrollbar-width: thin;
