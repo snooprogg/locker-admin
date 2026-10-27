@@ -5,6 +5,14 @@
     <title>Admin Lockers</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      // Apply the saved theme (or the OS preference for first-time visitors) before first paint to avoid a flash
+      (function () {
+        var m = document.cookie.match(/(?:^|;\s*)spoke-theme=(light|dark)/);
+        var os = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', m ? m[1] : os);
+      })();
+    </script>
   </head>
   <body>
     <app-root></app-root>

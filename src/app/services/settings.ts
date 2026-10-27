@@ -29,7 +29,10 @@ export class SettingsService {
     this.theme.update((t) => (t === 'dark' ? 'light' : 'dark'));
   }
 
+  /** Saved choice wins; first-time visitors follow the OS preference. */
   private readSavedTheme(): Theme {
-    return this.cookies.get(THEME_KEY) === 'light' ? 'light' : 'dark';
+    const saved = this.cookies.get(THEME_KEY);
+    if (saved === 'light' || saved === 'dark') return saved;
+    return this.document.defaultView?.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
   }
 }
