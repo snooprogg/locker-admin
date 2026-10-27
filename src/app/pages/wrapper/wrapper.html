@@ -1,7 +1,7 @@
 <div class="h-full">
     <div class="flex h-full bg-zinc-100 dark:bg-zinc-950 transition-all duration-200 overflow-hidden">
             <!-- Secondary Container -->
-        <app-sidebar></app-sidebar>
+        <app-sidebar (signOut)="onSignOut()"></app-sidebar>
         <div class="flex-1 flex flex-col overflow-hidden">
             <app-header></app-header>
             <div class="flex-1 overflow-y-auto">

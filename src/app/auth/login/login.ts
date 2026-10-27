@@ -1,6 +1,6 @@
 import { Component, inject, ChangeDetectorRef  } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink, Router } from '@angular/router';
+import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { LucideSunDim, LucideMoon } from '@lucide/angular';
 import { SettingsService } from '../../services/settings';
 import { SupabaseService } from '../../services/supabase.service';
@@ -19,6 +19,7 @@ export class LoginComponent {
   private supabase = inject(SupabaseService);
   private fs= inject(FunctionsService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private cdr = inject(ChangeDetectorRef);
   
   theme = this.settings.theme;
@@ -70,7 +71,9 @@ export class LoginComponent {
           // Save session token
           this.fs.saveSupabaseSession(data.session);
           console.log('Login successful, session:', data.session);
-          this.router.navigate(['home']);
+          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+          // Only follow in-app paths so a crafted link can't redirect off-site
+          this.router.navigateByUrl(returnUrl?.startsWith('/') && !returnUrl.startsWith('//') ? returnUrl : '/home');
         }
       } catch (error: any) {
         console.error('Login error:', error);

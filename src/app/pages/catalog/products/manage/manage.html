@@ -1,0 +1,98 @@
+<main class="flex-1 overflow-y-auto p-6 flex flex-col gap-5">
+  <div class="flex items-end justify-between flex-wrap gap-3">
+    <div>
+      <div class="font-mono text-[0.625rem] tracking-widest uppercase text-emerald-500 mb-1">Catalog · Products</div>
+      <h1
+        class="font-sans text-2xl font-semibold text-zinc-950 dark:text-zinc-100 m-0 tracking-tight transition-all duration-200">
+        Manage Products</h1>
+    </div>
+    <a routerLink="/catalog/products/add"
+      class="pt-2.25 pr-5 pb-2.25 pl-5 bg-emerald-500 border-0 rounded text-zinc-950 font-sans text-[0.8125rem] font-semibold cursor-pointer tracking-wide shadow-md shadow-emerald-500/20 transition-all duration-200 hover:bg-emerald-600 no-underline">Add
+      Product</a>
+  </div>
+
+  <app-toast [message]="error()" type="error" (closed)="error.set(null)" />
+  <app-toast [message]="success()" type="success" (closed)="success.set(null)" />
+
+  <div
+    class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md overflow-hidden transition-all duration-200">
+    <div class="pt-4 pr-6 pb-4 pl-6 border-b border-b-zinc-200 dark:border-b-zinc-800 flex items-center justify-between gap-3">
+      <div>
+        <div class="font-sans text-[0.8125rem] font-semibold text-zinc-950 dark:text-zinc-100 mb-0.5">All Products</div>
+        <div class="font-sans text-xs text-zinc-500">
+          @if (loading() && rows().length === 0) { Loading… }
+          @else if (total() === 0) { No products yet }
+          @else { Showing {{ rangeStart() }}–{{ rangeEnd() }} of {{ total() }} }
+        </div>
+      </div>
+      <span class="font-mono text-[0.625rem] tracking-widest uppercase text-zinc-500">{{ pageSize }} per page</span>
+    </div>
+
+    <div class="overflow-x-auto" [class.opacity-60]="loading()">
+      <table class="w-full border-collapse font-sans text-[0.8125rem]">
+        <thead>
+          <tr class="border-b border-b-zinc-200 dark:border-b-zinc-800 bg-white/2">
+            <th class="pt-2.5 pr-4 pb-2.5 pl-6 text-left font-mono text-[0.625rem] font-medium tracking-widest uppercase text-zinc-500">Name</th>
+            <th class="pt-2.5 pr-4 pb-2.5 pl-4 text-left font-mono text-[0.625rem] font-medium tracking-widest uppercase text-zinc-500">Internal SKU</th>
+            <th class="pt-2.5 pr-4 pb-2.5 pl-4 text-left font-mono text-[0.625rem] font-medium tracking-widest uppercase text-zinc-500">Category</th>
+            <th class="pt-2.5 pr-4 pb-2.5 pl-4 text-left font-mono text-[0.625rem] font-medium tracking-widest uppercase text-zinc-500">External SKU</th>
+            <th class="pt-2.5 pr-4 pb-2.5 pl-4 text-left font-mono text-[0.625rem] font-medium tracking-widest uppercase text-zinc-500">Status</th>
+            <th class="pt-2.5 pr-6 pb-2.5 pl-4 text-right font-mono text-[0.625rem] font-medium tracking-widest uppercase text-zinc-500"><span class="sr-only">Edit</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.id) {
+            <tr class="border-b border-b-zinc-200 dark:border-b-zinc-800 last:border-b-0 transition-colors duration-200 hover:bg-emerald-500/4">
+              <td class="pt-3 pr-4 pb-3 pl-6 font-medium text-zinc-950 dark:text-zinc-100">{{ row.product_name }}</td>
+              <td class="pt-3 pr-4 pb-3 pl-4 font-mono text-xs text-zinc-600 dark:text-zinc-400">{{ row.internal_sku ?? '—' }}</td>
+              <td class="pt-3 pr-4 pb-3 pl-4 text-zinc-600 dark:text-zinc-400">{{ categoryLabel(row.category) }}</td>
+              <td class="pt-3 pr-4 pb-3 pl-4 font-mono text-xs text-zinc-600 dark:text-zinc-400">{{ row.vendor_sku ?? '—' }}</td>
+              <td class="pt-3 pr-4 pb-3 pl-4 font-mono text-xs text-zinc-600 dark:text-zinc-400">{{ row.status }}</td>
+              <td class="pt-3 pr-6 pb-3 pl-4 text-right">
+                <a [routerLink]="['/catalog/products/edit', row.id]" [attr.aria-label]="'Edit ' + row.product_name"
+                  class="inline-flex size-8 items-center justify-center rounded border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-emerald-500 hover:border-emerald-500/40 transition-all duration-200">
+                  <svg lucidePencil class="size-3.5" aria-hidden="true"></svg>
+                </a>
+              </td>
+            </tr>
+          } @empty {
+            @if (!loading()) {
+              <tr>
+                <td colspan="6" class="pt-12 pb-12 text-center">
+                  <div class="flex flex-col items-center gap-2 text-zinc-500">
+                    <svg lucidePackage class="size-7 opacity-50" aria-hidden="true"></svg>
+                    <div class="font-sans text-xs">No products in the catalog yet.</div>
+                    <a routerLink="/catalog/products/add" class="font-sans text-xs text-emerald-500 hover:underline">Add your first product</a>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (pageCount() > 1) {
+      <div class="pt-3 pr-6 pb-3 pl-6 border-t border-t-zinc-200 dark:border-t-zinc-800 flex items-center justify-between gap-3 flex-wrap">
+        <div class="font-sans text-xs text-zinc-500">Page {{ page() }} of {{ pageCount() }}</div>
+        <nav class="flex items-center gap-1" aria-label="Pagination">
+          <button type="button" (click)="goTo(page() - 1)" [disabled]="page() === 1 || loading()" aria-label="Previous page"
+            class="flex size-8 items-center justify-center rounded border border-zinc-200 dark:border-zinc-800 bg-transparent text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-100 cursor-pointer transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed">
+            <svg lucideChevronLeft class="size-4" aria-hidden="true"></svg>
+          </button>
+          @for (n of pageNumbers(); track n) {
+            <button type="button" (click)="goTo(n)" [disabled]="loading()" [attr.aria-current]="n === page() ? 'page' : null"
+              class="flex h-8 min-w-8 items-center justify-center rounded border px-2 font-mono text-xs cursor-pointer transition-all duration-200"
+              [class]="n === page()
+                ? 'border-emerald-500 bg-emerald-500/10 text-emerald-500 font-medium'
+                : 'border-zinc-200 dark:border-zinc-800 bg-transparent text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100'">{{ n }}</button>
+          }
+          <button type="button" (click)="goTo(page() + 1)" [disabled]="page() === pageCount() || loading()" aria-label="Next page"
+            class="flex size-8 items-center justify-center rounded border border-zinc-200 dark:border-zinc-800 bg-transparent text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-100 cursor-pointer transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed">
+            <svg lucideChevronRight class="size-4" aria-hidden="true"></svg>
+          </button>
+        </nav>
+      </div>
+    }
+  </div>
+</main>

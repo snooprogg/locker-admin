@@ -45,6 +45,12 @@ export interface ProductRow {
   updated_at: string;
 }
 
+/** Columns shown in the products manage table. */
+export type ProductListRow = Pick<
+  ProductRow,
+  'id' | 'product_name' | 'internal_sku' | 'category' | 'vendor_sku' | 'status'
+>;
+
 export type VendorStatus = 'active' | 'inactive';
 
 /** Row shape of catalog.vendor */

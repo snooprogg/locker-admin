@@ -1,15 +1,4 @@
 
-/*
-import { Component } from '@angular/core';
-
-@Component({
-  imports: [],
-  selector: 'app-sidebar',
-  styleUrl: './sidebar.css',
-  templateUrl: './sidebar.html',
-})
-export class Sidebar {}
-*/
 import { ChangeDetectionStrategy,Component,effect,inject,input,model,output,signal,untracked} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
@@ -31,7 +20,7 @@ export interface NavItem {
 export type NavEntry = NavItem | 'divider';
 
 export const DEFAULT_NAV: NavEntry[] = [
-  { label: 'Overview', icon: LucideLayoutGrid, route: '/', exact: true },
+  { label: 'Overview', icon: LucideLayoutGrid, route: '/home', exact: true },
   'divider',
   {
     label: 'Catalog',
@@ -42,11 +31,13 @@ export const DEFAULT_NAV: NavEntry[] = [
         icon: LucidePackage,
         children: [
           { label: 'Add', route: '/catalog/products/add' },
+          { label: 'Manage', route: '/catalog/products/manage' },
         ],
       },
       { label: 'Vendors', icon: LucideBriefcase, 
         children: [
           { label: 'Add', route: '/catalog/vendors/add' },
+          { label: 'Manage', route: '/catalog/vendors/manage' },
         ] 
       },
     ],

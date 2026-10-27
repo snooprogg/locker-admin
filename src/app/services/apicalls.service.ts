@@ -13,6 +13,8 @@ export interface ApiCallOptions {
   schema?: string;
   /** Extra headers, e.g. `{ Prefer: 'return=representation' }`. */
   headers?: Record<string, string>;
+  /** `'response'` resolves to the full HttpResponse (for reading headers like Content-Range). Defaults to body. */
+  observe?: 'body' | 'response';
 }
 
 @Injectable({
@@ -51,7 +53,7 @@ export class ApiCallsService {
     headers = headers.set('Authorization', `Bearer ${token ?? this.apiKey}`);
 
     const url = this.apiUrl + endpoint.replace(/^\/+/, '');
-    const options = { headers };
+    const options = { headers, observe: (opts.observe ?? 'body') as 'body' };
 
     switch (method) {
       case 'GET':

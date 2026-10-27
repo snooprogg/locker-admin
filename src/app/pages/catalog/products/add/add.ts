@@ -1,54 +1,40 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormControl, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { LucideX } from '@lucide/angular';
-import { firstValueFrom } from 'rxjs';
-import { ApiCallsService } from '../../../../services/apicalls.service';
-import { Option, ProductRow, ProductStatus, VendorRow } from '../../../../models/site';
-import { AddVendor } from '../../vendors/add/add';
-import { Toast } from '../../../../components/toast/toast';
+import { ActivatedRoute, RouterLink }                                           from '@angular/router';
+import { LucideX }                                                              from '@lucide/angular';
+import { firstValueFrom }                                                       from 'rxjs';
+import { ApiCallsService }                                                      from '../../../../services/apicalls.service';
+import { ProductRow, ProductStatus, VendorRow }                                 from '../../../../models/site';
+import { CATEGORIES, STATUSES, SELLING_UNITS, PURCHASE_UNITS, NEW_VENDOR }      from '../../../../services/formdata.service';
+import { AddVendor }                                                            from '../../vendors/add/add';
+import { Toast }                                                                from '../../../../components/toast/toast';
 
-const SCHEMA = 'catalog';
-const IMAGE_BUCKET = 'product-images';
-/** Sentinel value for the "Create new…" vendor option. */
-export const NEW_VENDOR = '__new__';
-
-export const CATEGORIES: Option[] = [
-  { value: 'locker-units', label: 'Locker Units' },
-  { value: 'accessories',  label: 'Accessories' },
-  { value: 'spare-parts',  label: 'Spare Parts' },
-  { value: 'consumables',  label: 'Consumables' },
-  { value: 'software',     label: 'Software' },
-];
-
-export const STATUSES: Option<ProductStatus>[] = [
-  { value: 'active',      label: 'Active' },
-  { value: 'draft',       label: 'Draft' },
-  { value: 'inactive',    label: 'Inactive' },
-];
-
-export const SELLING_UNITS: Option[] = ['Each', 'Box', 'Pack', 'Pair', 'Set', 'Kit', 'Bundle'].map(
-  (l) => ({ value: l.toLowerCase(), label: l }),
-);
-
-export const PURCHASE_UNITS: Option[] = ['Case', 'Box', 'Each', 'Pallet', 'Carton'].map((l) => ({
-  value: l.toLowerCase(),
-  label: l,
-}));
-
-const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
-const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
+const SCHEMA            = 'catalog';
+const IMAGE_BUCKET      = 'product-images';
+const MAX_IMAGE_BYTES   = 4 * 1024 * 1024;
+const IMAGE_TYPES       = ['image/png', 'image/jpeg', 'image/webp'];
 
 @Component({
-  selector: 'app-add-product',
-  imports: [ReactiveFormsModule, LucideX, AddVendor, Toast],
-  templateUrl: './add.html',
-  styleUrl: './add.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'block', '(document:keydown.escape)': 'closeVendorOverlay()' },
+  selector:         'app-add-product',
+  imports:          [ReactiveFormsModule, RouterLink, LucideX, AddVendor, Toast],
+  templateUrl:      './add.html',
+  styleUrl:         './add.css',
+  changeDetection:  ChangeDetectionStrategy.OnPush,
+  host:             { class: 'block', '(document:keydown.escape)': 'closeVendorOverlay()' },
 })
+
 export class AddProducts implements OnInit {
-  private fb = inject(NonNullableFormBuilder);
-  private api = inject(ApiCallsService);
+  private fb    = inject(NonNullableFormBuilder);
+  private api   = inject(ApiCallsService);
+  private route = inject(ActivatedRoute);
+
+  /** Set when editing an existing product (route `catalog/products/edit/:id`). */
+  productId       = signal<string | null>(null);
+  isEdit          = computed(() => this.productId() !== null);
+  loadingProduct  = signal(false);
+  /** Snapshot of the loaded product's form values so Discard can revert to them. */
+  private loadedValue: ReturnType<AddProducts['form']['getRawValue']> | null = null;
+  private loadedImageUrl: string | null = null;
 
   readonly categories    = CATEGORIES;
   readonly statuses      = STATUSES;
@@ -57,16 +43,16 @@ export class AddProducts implements OnInit {
   readonly NEW_VENDOR    = NEW_VENDOR;
   readonly imageTypes    = IMAGE_TYPES.join(',');
 
-  vendors         =           signal<Pick<VendorRow, 'id' | 'name'>[]>([]);
-  vendorsError    =           signal<string | null>(null);
-  vendorOverlay   =           signal(false);
+  vendors         = signal<Pick<VendorRow, 'id' | 'name'>[]>([]);
+  vendorsError    = signal<string | null>(null);
+  vendorOverlay   = signal(false);
 
-  imagePreview    =           signal<string | null>(null);
-  imageError      =           signal<string | null>(null);
-  dragging        =           signal(false);
-  saving          =           signal(false);
-  error           =           signal<string | null>(null);
-  success         =           signal<string | null>(null);
+  imagePreview    = signal<string | null>(null);
+  imageError      = signal<string | null>(null);
+  dragging        = signal(false);
+  saving          = signal(false);
+  error           = signal<string | null>(null);
+  success         = signal<string | null>(null);
 
   form = this.fb.group({
     name:               ['', [Validators.required, Validators.maxLength(120)]],
@@ -95,6 +81,49 @@ export class AddProducts implements OnInit {
 
   ngOnInit() {
     this.loadVendors();
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.productId.set(id);
+      this.loadProduct(id);
+    }
+  }
+
+  private async loadProduct(id: string) {
+    this.loadingProduct.set(true);
+    this.form.disable();
+    try {
+      const [p] = (await firstValueFrom(
+        this.api.apiCall(`rest/v1/products?id=eq.${id}&select=*`, 'GET', null, true, { schema: SCHEMA }),
+      )) as ProductRow[];
+      if (!p) throw new Error('Product not found.');
+      this.form.patchValue({
+        name:               p.product_name,
+        sku:                p.internal_sku ?? '',
+        description:        p.description ?? '',
+        barcode:            p.barcode_upc ?? '',
+        category:           p.category ?? '',
+        status:             p.status,
+        sellingUnit:        p.selling_unit ?? SELLING_UNITS[0].value,
+        sellingPrice:       p.selling_price,
+        taxable:            p.taxable,
+        vendor:             p.vendor_id ?? '',
+        vendorSku:          p.vendor_sku ?? '',
+        purchaseUnit:       p.purchase_unit ?? PURCHASE_UNITS[0].value,
+        qtyPerPurchaseUnit: p.quantity_per_purchase_unit,
+        purchaseCost:       p.current_purchase_cost,
+        minOrderQty:        p.minimum_order_quantity,
+        reorderUrl:         p.reorder_url ?? '',
+        orderingNotes:      p.ordering_notes ?? '',
+      });
+      this.loadedValue = this.form.getRawValue();
+      this.loadedImageUrl = p.product_image_url;
+      this.imagePreview.set(p.product_image_url);
+    } catch (err) {
+      this.error.set(this.describeError(err));
+    } finally {
+      this.loadingProduct.set(false);
+      this.form.enable();
+    }
   }
 
   invalid(name: keyof typeof this.form.controls) {
@@ -190,7 +219,7 @@ export class AddProducts implements OnInit {
       }
     }
     const prev = this.imagePreview();
-    if (prev) URL.revokeObjectURL(prev);
+    if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
     this.imagePreview.set(file ? URL.createObjectURL(file) : null);
     this.f.image.setValue(file);
     this.f.image.markAsDirty();
@@ -198,9 +227,14 @@ export class AddProducts implements OnInit {
 
   onDiscard() {
     this.setImage(null);
-    this.form.reset();
     this.error.set(null);
     this.success.set(null);
+    if (this.loadedValue) {
+      this.form.reset(this.loadedValue);
+      this.imagePreview.set(this.loadedImageUrl);
+    } else {
+      this.form.reset();
+    }
   }
 
   async onSubmit() {
@@ -215,11 +249,18 @@ export class AddProducts implements OnInit {
     this.form.disable();
 
     try {
-      const product = await this.insertProduct(v);
-      if (v.image)    await this.attachImage(product.id, v.image);
-      this.success.set(`"${product.product_name}" saved.`);
-      this.setImage(null);
-      this.form.reset();
+      const product = await this.saveProduct(v);
+      if (v.image) await this.attachImage(product.id, v.image);
+      if (this.isEdit()) {
+        this.success.set(`"${product.product_name}" updated.`);
+        this.f.image.setValue(null);
+        this.loadedValue = this.form.getRawValue();
+        if (v.image) this.loadedImageUrl = this.imagePreview();
+      } else {
+        this.success.set(`"${product.product_name}" saved.`);
+        this.setImage(null);
+        this.form.reset();
+      }
     } catch (err) {
       this.error.set(this.describeError(err));
     } finally {
@@ -228,7 +269,8 @@ export class AddProducts implements OnInit {
     }
   }
 
-  private async insertProduct(v: ReturnType<typeof this.form.getRawValue>): Promise<ProductRow> {
+  /** POST a new product, or PATCH the one being edited. */
+  private async saveProduct(v: ReturnType<typeof this.form.getRawValue>): Promise<ProductRow> {
     const text = (s: string) => (s.trim() === '' ? null : s.trim());
     const row = {
       product_name:               v.name.trim(),
@@ -250,12 +292,14 @@ export class AddProducts implements OnInit {
       reorder_url:                text(v.reorderUrl),
       ordering_notes:             text(v.orderingNotes),
     };
+    const id = this.productId();
     const [product] = await firstValueFrom(
-      this.api.apiCall('rest/v1/products', 'POST', row, true, {
+      this.api.apiCall(id ? `rest/v1/products?id=eq.${id}` : 'rest/v1/products', id ? 'PATCH' : 'POST', row, true, {
         schema: SCHEMA,
         headers: { Prefer: 'return=representation' },
       }),
     );
+    if (!product) throw new Error('Product not found.');
     return product as ProductRow;
   }
 
@@ -265,6 +309,17 @@ export class AddProducts implements OnInit {
     const objectPath = `${productId}/${Date.now()}-${safeName}`;
 
     await firstValueFrom(this.api.apiCall(`storage/v1/object/${IMAGE_BUCKET}/${objectPath}`, 'POST', file, true));
+
+    // Demote any existing primary image so the new one takes over
+    await firstValueFrom(
+      this.api.apiCall(
+        `rest/v1/images?product_id=eq.${productId}&is_primary=eq.true`,
+        'PATCH',
+        { is_primary: false },
+        true,
+        { schema: SCHEMA },
+      ),
+    );
 
     await firstValueFrom(
       this.api.apiCall(
