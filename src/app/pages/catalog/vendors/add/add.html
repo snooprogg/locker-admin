@@ -6,12 +6,18 @@
           <div class="font-mono text-[0.625rem] tracking-widest uppercase text-emerald-500 mb-1">Catalog · Vendors</div>
           <h1
             class="font-sans text-2xl font-semibold text-zinc-950 dark:text-zinc-100 m-0 tracking-tight transition-all duration-200">
-            Add Vendor</h1>
+            {{ isEdit() ? 'Edit Vendor' : 'Add Vendor' }}</h1>
         </div>
-        <div class="flex gap-2.5"><button type="button" (click)="onDiscard()" [disabled]="saving()"
+        <div class="flex gap-2.5">
+          @if (isEdit()) {
+            <a routerLink="/catalog/vendors/manage"
+              class="pt-2.25 pr-4.5 pb-2.25 pl-4.5 bg-transparent border border-zinc-200 dark:border-zinc-800 rounded text-zinc-600 dark:text-zinc-400 font-sans text-[0.8125rem] cursor-pointer transition-all duration-200 no-underline">Back
+              to list</a>
+          }
+          <button type="button" (click)="onDiscard()" [disabled]="saving() || loadingVendor()"
             class="pt-2.25 pr-4.5 pb-2.25 pl-4.5 bg-transparent border border-zinc-200 dark:border-zinc-800 rounded text-zinc-600 dark:text-zinc-400 font-sans text-[0.8125rem] cursor-pointer transition-all duration-200 disabled:opacity-60">Discard</button><button
-            type="submit" [disabled]="saving()"
-            class="pt-2.25 pr-5 pb-2.25 pl-5 bg-emerald-500 border-0 rounded text-zinc-950 font-sans text-[0.8125rem] font-semibold cursor-pointer tracking-wide shadow-md shadow-emerald-500/20 transition-all duration-200 hover:bg-emerald-600 disabled:cursor-wait disabled:opacity-60">{{ saving() ? 'Saving…' : 'Save Vendor' }}</button></div>
+            type="submit" [disabled]="saving() || loadingVendor()"
+            class="pt-2.25 pr-5 pb-2.25 pl-5 bg-emerald-500 border-0 rounded text-zinc-950 font-sans text-[0.8125rem] font-semibold cursor-pointer tracking-wide shadow-md shadow-emerald-500/20 transition-all duration-200 hover:bg-emerald-600 disabled:cursor-wait disabled:opacity-60">{{ saving() ? 'Saving…' : isEdit() ? 'Save Changes' : 'Save Vendor' }}</button></div>
       </div>
     }
 
@@ -124,6 +130,6 @@
     <div class="flex justify-end gap-2.5 pb-2"><button type="button" (click)="onDiscard()" [disabled]="saving()"
         class="pt-2.25 pr-4.5 pb-2.25 pl-4.5 bg-transparent border border-zinc-200 dark:border-zinc-800 rounded text-zinc-600 dark:text-zinc-400 font-sans text-[0.8125rem] cursor-pointer disabled:opacity-60">Discard</button><button
         type="submit" [disabled]="saving()"
-        class="pt-2.25 pr-5 pb-2.25 pl-5 bg-emerald-500 border-0 rounded text-zinc-950 font-sans text-[0.8125rem] font-semibold cursor-pointer tracking-wide shadow-md shadow-emerald-500/20 hover:bg-emerald-600 disabled:cursor-wait disabled:opacity-60">{{ saving() ? 'Saving…' : 'Save Vendor' }}</button></div>
+        class="pt-2.25 pr-5 pb-2.25 pl-5 bg-emerald-500 border-0 rounded text-zinc-950 font-sans text-[0.8125rem] font-semibold cursor-pointer tracking-wide shadow-md shadow-emerald-500/20 hover:bg-emerald-600 disabled:cursor-wait disabled:opacity-60">{{ saving() ? 'Saving…' : isEdit() ? 'Save Changes' : 'Save Vendor' }}</button></div>
   </form>
 </main>

@@ -8,6 +8,7 @@ import { ProductRow, ProductStatus, VendorRow }                                 
 import { CATEGORIES, STATUSES, SELLING_UNITS, PURCHASE_UNITS, NEW_VENDOR }      from '../../../../services/formdata.service';
 import { AddVendor }                                                            from '../../vendors/add/add';
 import { Toast }                                                                from '../../../../components/toast/toast';
+import { FunctionsService }                                                     from '../../../../services/functions.service';
 
 const SCHEMA            = 'catalog';
 const IMAGE_BUCKET      = 'product-images';
@@ -27,6 +28,7 @@ export class AddProducts implements OnInit {
   private fb    = inject(NonNullableFormBuilder);
   private api   = inject(ApiCallsService);
   private route = inject(ActivatedRoute);
+  private fs    = inject(FunctionsService);
 
   /** Set when editing an existing product (route `catalog/products/edit/:id`). */
   productId       = signal<string | null>(null);
@@ -79,13 +81,15 @@ export class AddProducts implements OnInit {
     return this.form.controls;
   }
 
-  ngOnInit() {
-    this.loadVendors();
+    async ngOnInit() {
+      this.fs.show();
+    await this.loadVendors();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.productId.set(id);
-      this.loadProduct(id);
+     await this.loadProduct(id);
     }
+    this.fs.hide();
   }
 
   private async loadProduct(id: string) {

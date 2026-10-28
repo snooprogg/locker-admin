@@ -326,6 +326,7 @@
         <svg lucideX class="size-4" aria-hidden="true"></svg>
       </button>
     </div>
-    <app-add-vendor [embedded]="true" class="flex-1 min-h-0 flex flex-col overflow-hidden" (saved)="onVendorCreated($event)" />
+    <app-add-vendor [embedded]="true" class="flex-1 min-h-0 flex flex-col overflow-hidden"
+      (saved)="onVendorCreated($event)" (cancelled)="closeVendorOverlay()" />
   </div>
 }

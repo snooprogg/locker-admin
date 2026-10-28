@@ -1,0 +1,27 @@
+.loading-bar-indicator {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 35%;
+  background: currentColor;
+  border-radius: inherit;
+  animation: loading-bounce 1.0s ease-in-out infinite alternate;
+}
+
+@keyframes loading-bounce {
+  from {
+    transform: translateX(-90%);
+  }
+
+  to {
+    transform: translateX(275%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-bar-indicator {
+    animation: none;
+    width: 100%;
+    opacity: 0.5;
+  }
+}

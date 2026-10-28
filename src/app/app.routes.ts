@@ -18,6 +18,7 @@ export const routes: Routes = [
     { path: 'catalog/products/edit/:id', component: AddProducts },
     { path: 'catalog/products/manage', component: ManageProducts },
     { path: 'catalog/vendors/add', component: AddVendor },
+    { path: 'catalog/vendors/edit/:id', component: AddVendor },
     { path: 'catalog/vendors/manage', component: ManageVendors }
   ]  },
   { path: '**', redirectTo: 'login' },

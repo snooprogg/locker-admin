@@ -64,3 +64,6 @@ export interface VendorRow {
   notes: string | null;
   created_on: string;
 }
+
+/** Columns shown in the vendors manage table. */
+export type VendorListRow = Pick<VendorRow, 'id' | 'name' | 'contact' | 'phone' | 'email'>;

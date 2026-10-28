@@ -1,12 +1,13 @@
-import { Component, inject } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { Header } from '../navigation/header/header';
 import { Router, RouterOutlet } from '@angular/router';
 import { Sidebar } from '../navigation/sidebar/sidebar';
+import { LoadingBar } from '../../components/loading-bar/loading-bar';
 import { SupabaseService } from '../../services/supabase.service';
 import { FunctionsService } from '../../services/functions.service';
 
 @Component({
-  imports: [RouterOutlet, Sidebar, Header],
+  imports: [RouterOutlet, Sidebar, Header, LoadingBar],
   selector: 'app-wrapper',
   styleUrl: './wrapper.css',
   templateUrl: './wrapper.html',
@@ -16,7 +17,7 @@ export class Wrapper {
   private supabase = inject(SupabaseService);
   private fs = inject(FunctionsService);
   private router = inject(Router);
-
+  readonly loading = signal(false);
   async onSignOut() {
     try {
       await this.supabase.signOut();

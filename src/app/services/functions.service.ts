@@ -1,5 +1,5 @@
 // src/app/services/functions.services.ts
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { CookieService } from 'ngx-cookie-service';
 import { jwtDecode } from 'jwt-decode';
 import { JwtPayload } from '../models/site';
@@ -13,6 +13,17 @@ export class FunctionsService {
   private sessionKey = 'supabase_session'; // Key for storing Supabase session
 
   constructor(private cookieService: CookieService) {}
+
+  private readonly _loading = signal(false);
+
+  readonly loading = this._loading.asReadonly();
+  show() {
+    this._loading.set(true);
+  }
+
+  hide() {
+    this._loading.set(false);
+  }
 
   // Save JWT token in a cookie
   saveToken(token: string, expiresInDays = 7): void {

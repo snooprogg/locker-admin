@@ -7,6 +7,7 @@ import { ApiCallsService } from '../../../../services/apicalls.service';
 import { ProductListRow } from '../../../../models/site';
 import { CATEGORIES } from '../../../../services/formdata.service';
 import { Toast } from '../../../../components/toast/toast';
+import { FunctionsService } from '../../../../services/functions.service';
 
 const SCHEMA    = 'catalog';
 const PAGE_SIZE = 10;
@@ -21,6 +22,7 @@ const COLUMNS   = 'id,product_name,internal_sku,category,vendor_sku,status';
 })
 export class ManageProducts implements OnInit {
   private api = inject(ApiCallsService);
+  private fs = inject(FunctionsService);
 
   readonly pageSize = PAGE_SIZE;
 
@@ -62,13 +64,13 @@ export class ManageProducts implements OnInit {
   }
 
   async load() {
+    this.fs.show();
     this.loading.set(true);
     this.error.set(null);
     const offset = (this.page() - 1) * PAGE_SIZE;
     try {
       const res = (await firstValueFrom(
-        this.api.apiCall(
-          `rest/v1/products?select=${COLUMNS}&order=product_name.asc&limit=${PAGE_SIZE}&offset=${offset}`,
+        this.api.apiCall(`rest/v1/products?select=${COLUMNS}&order=product_name.asc&limit=${PAGE_SIZE}&offset=${offset}`,
           'GET',
           null,
           true,
@@ -88,6 +90,7 @@ export class ManageProducts implements OnInit {
       this.error.set(this.describeError(err));
     } finally {
       this.loading.set(false);
+      this.fs.hide();
     }
   }
 
